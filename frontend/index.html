@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Commerce Store - Shop Online Like Flipkart</title>
+    <title>E-Shop - Your Ultimate Shopping Destination</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -20,10 +20,13 @@
 
         /* Header */
         .header {
-            background: #2874f0;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
-            padding: 12px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header-content {
@@ -36,15 +39,19 @@
         }
 
         .logo {
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 32px;
+            font-weight: 900;
             font-style: italic;
+            letter-spacing: -1px;
+            cursor: pointer;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
         .logo span {
-            font-size: 12px;
+            font-size: 11px;
             font-style: normal;
-            color: #ffe500;
+            color: #fbbf24;
+            font-weight: 600;
         }
 
         .search-bar {
@@ -83,17 +90,21 @@
 
         .header-btn {
             background: white;
-            color: #2874f0;
+            color: #6366f1;
             padding: 8px 40px;
             border: none;
-            border-radius: 2px;
+            border-radius: 25px;
             font-weight: 600;
             cursor: pointer;
             font-size: 16px;
+            transition: all 0.3s;
         }
 
         .header-btn:hover {
-            background: #f0f0f0;
+            background: #fbbf24;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251,191,36,0.4);
         }
 
         /* Navigation */
@@ -123,7 +134,8 @@
         }
 
         .nav-item:hover {
-            color: #2874f0;
+            color: #6366f1;
+            transform: translateY(-2px);
         }
 
         .nav-item i {
@@ -179,14 +191,14 @@
         }
 
         .filter-btn:hover {
-            border-color: #2874f0;
-            color: #2874f0;
+            border-color: #6366f1;
+            color: #6366f1;
         }
 
         .filter-btn.active {
-            background: #2874f0;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
-            border-color: #2874f0;
+            border-color: #6366f1;
         }
 
         /* Products Grid */
@@ -226,9 +238,9 @@
         }
 
         .sort-btn.active {
-            background: #2874f0;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
-            border-color: #2874f0;
+            border-color: #6366f1;
         }
 
         .products-grid {
@@ -257,6 +269,189 @@
             height: 220px;
             object-fit: contain;
             margin-bottom: 12px;
+            background: #fafafa;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .product-image[src=""], .product-image:not([src]) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Hero Banner with Carousel */
+        .hero-banner {
+            position: relative;
+            height: 500px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .carousel-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1;
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            padding: 40px;
+            max-width: 800px;
+        }
+
+        .slide-content h1 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            animation: slideInDown 0.8s ease-out;
+        }
+
+        .slide-content p {
+            font-size: 24px;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            gap: 15px;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .cta-btn {
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-primary {
+            background: #fbbf24;
+            color: #212121;
+        }
+
+        .cta-primary:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(251,191,36,0.4);
+        }
+
+        .cta-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-secondary:hover {
+            background: white;
+            color: #6366f1;
+        }
+
+        /* Carousel Navigation Dots */
+        .carousel-dots {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 3;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .carousel-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        .carousel-dot:hover {
+            background: rgba(255,255,255,0.8);
         }
 
         .discount-badge {
@@ -344,19 +539,20 @@
         .add-to-cart-btn {
             width: 100%;
             padding: 10px;
-            background: #ff9f00;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             border: none;
-            border-radius: 2px;
+            border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 12px;
             font-size: 14px;
-            transition: background 0.2s;
+            transition: all 0.3s;
         }
 
         .add-to-cart-btn:hover {
-            background: #e68a00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16,185,129,0.4);
         }
 
         .add-to-cart-btn:disabled {
@@ -439,6 +635,197 @@
             }
         }
 
+        /* Login Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #000;
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #212121;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .modal-header p {
+            color: #878787;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #212121;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .form-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .form-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99,102,241,0.3);
+        }
+
+        .form-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: #878787;
+            font-size: 14px;
+        }
+
+        .form-toggle a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .form-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #212121;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .products-grid {
@@ -473,8 +860,10 @@
                 </button>
             </div>
             <div class="header-actions">
-                <button class="header-btn" onclick="login()">Login</button>
-                <div style="cursor: pointer; font-size: 20px;" onclick="viewCart()">
+                <button class="header-btn" onclick="login()">
+                    <i class="fas fa-user"></i> Login
+                </button>
+                <div style="cursor: pointer; font-size: 24px; position: relative;" onclick="viewCart()" title="Shopping Cart">
                     <i class="fas fa-shopping-cart"></i>
                 </div>
             </div>
@@ -485,7 +874,7 @@
     <nav class="nav">
         <div class="nav-content">
             <a href="#" class="nav-item" onclick="filterByCategory('Electronics')">
-                <i class="fas fa-mobile-alt"></i>
+                <i class="fas fa-laptop"></i>
                 <span>Electronics</span>
             </a>
             <a href="#" class="nav-item" onclick="filterByCategory('Fashion')">
@@ -493,31 +882,19 @@
                 <span>Fashion</span>
             </a>
             <a href="#" class="nav-item" onclick="filterByCategory('Home')">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
+                <i class="fas fa-couch"></i>
+                <span>Home & Living</span>
             </a>
             <a href="#" class="nav-item" onclick="filterByCategory('Books')">
-                <i class="fas fa-book"></i>
+                <i class="fas fa-book-open"></i>
                 <span>Books</span>
             </a>
             <a href="#" class="nav-item" onclick="filterByCategory('Sports')">
-                <i class="fas fa-futbol"></i>
-                <span>Sports</span>
-            </a>
-            <a href="#" class="nav-item" onclick="filterByCategory('Beauty')">
-                <i class="fas fa-spa"></i>
-                <span>Beauty</span>
-            </a>
-            <a href="#" class="nav-item" onclick="filterByCategory('Toys')">
-                <i class="fas fa-puzzle-piece"></i>
-                <span>Toys</span>
-            </a>
-            <a href="#" class="nav-item" onclick="filterByCategory('Grocery')">
-                <i class="fas fa-shopping-basket"></i>
-                <span>Grocery</span>
+                <i class="fas fa-dumbbell"></i>
+                <span>Sports & Fitness</span>
             </a>
             <a href="#" class="nav-item" onclick="filterByCategory('')">
-                <i class="fas fa-star"></i>
+                <i class="fas fa-th-large"></i>
                 <span>All Products</span>
             </a>
         </div>
@@ -525,6 +902,100 @@
 
     <!-- Main Content -->
     <div class="container">
+        <!-- Hero Banner with Image Carousel -->
+        <div class="hero-banner">
+            <div class="carousel">
+                <!-- Slide 1 -->
+                <div class="carousel-slide active" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=600&fit=crop&q=80');">
+                    <div class="slide-content">
+                        <h1>🛍️ Welcome to E-Shop!</h1>
+                        <p>Discover amazing deals on your favorite products</p>
+                        <div class="hero-cta">
+                            <button class="cta-btn cta-primary" onclick="scrollToProducts()">
+                                <i class="fas fa-shopping-bag"></i> Start Shopping
+                            </button>
+                            <button class="cta-btn cta-secondary" onclick="showDeals()">
+                                <i class="fas fa-tag"></i> View Deals
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="carousel-slide" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600&h=600&fit=crop&q=80');">
+                    <div class="slide-content">
+                        <h1>📱 Latest Electronics</h1>
+                        <p>Shop premium smartphones, laptops & gadgets</p>
+                        <div class="hero-cta">
+                            <button class="cta-btn cta-primary" onclick="filterByCategory('Electronics'); scrollToProducts();">
+                                <i class="fas fa-laptop"></i> Shop Electronics
+                            </button>
+                            <button class="cta-btn cta-secondary" onclick="showDeals()">
+                                <i class="fas fa-percentage"></i> Up to 50% Off
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3 -->
+                <div class="carousel-slide" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600&h=600&fit=crop&q=80');">
+                    <div class="slide-content">
+                        <h1>👕 Fashion Collection</h1>
+                        <p>Trendy styles for men & women</p>
+                        <div class="hero-cta">
+                            <button class="cta-btn cta-primary" onclick="filterByCategory('Fashion'); scrollToProducts();">
+                                <i class="fas fa-tshirt"></i> Explore Fashion
+                            </button>
+                            <button class="cta-btn cta-secondary" onclick="showDeals()">
+                                <i class="fas fa-fire"></i> Hot Deals
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4 -->
+                <div class="carousel-slide" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=1600&h=600&fit=crop&q=80');">
+                    <div class="slide-content">
+                        <h1>📚 Best Selling Books</h1>
+                        <p>Expand your mind with our book collection</p>
+                        <div class="hero-cta">
+                            <button class="cta-btn cta-primary" onclick="filterByCategory('Books'); scrollToProducts();">
+                                <i class="fas fa-book-open"></i> Browse Books
+                            </button>
+                            <button class="cta-btn cta-secondary" onclick="showDeals()">
+                                <i class="fas fa-gift"></i> Special Offers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5 -->
+                <div class="carousel-slide" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1600&h=600&fit=crop&q=80');">
+                    <div class="slide-content">
+                        <h1>⚽ Sports & Fitness</h1>
+                        <p>Gear up for your active lifestyle</p>
+                        <div class="hero-cta">
+                            <button class="cta-btn cta-primary" onclick="filterByCategory('Sports'); scrollToProducts();">
+                                <i class="fas fa-dumbbell"></i> Shop Sports
+                            </button>
+                            <button class="cta-btn cta-secondary" onclick="showDeals()">
+                                <i class="fas fa-bolt"></i> Flash Sale
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carousel Navigation Dots -->
+                <div class="carousel-dots">
+                    <span class="carousel-dot active" onclick="goToSlide(0)"></span>
+                    <span class="carousel-dot" onclick="goToSlide(1)"></span>
+                    <span class="carousel-dot" onclick="goToSlide(2)"></span>
+                    <span class="carousel-dot" onclick="goToSlide(3)"></span>
+                    <span class="carousel-dot" onclick="goToSlide(4)"></span>
+                </div>
+            </div>
+        </div>
+
         <!-- Filters -->
         <div class="filters">
             <div class="filter-group">
@@ -561,6 +1032,73 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeAuthModal()">&times;</span>
+            
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="modal-header">
+                    <h2>Welcome Back!</h2>
+                    <p>Login to access your account</p>
+                </div>
+                <div id="loginError" class="error-message"></div>
+                <div id="loginSuccess" class="success-message"></div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-input" id="loginEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="form-btn" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                <div class="form-toggle">
+                    Don't have an account? <a onclick="switchToRegister()">Register here</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" style="display: none;">
+                <div class="modal-header">
+                    <h2>Create Account</h2>
+                    <p>Join us and start shopping!</p>
+                </div>
+                <div id="registerError" class="error-message"></div>
+                <div id="registerSuccess" class="success-message"></div>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" class="form-input" id="registerName" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-input" id="registerEmail" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" class="form-input" id="registerPhone" placeholder="Enter your phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-input" id="registerPassword" placeholder="Create a password" required minlength="6">
+                    </div>
+                    <button type="submit" class="form-btn" id="registerBtn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                <div class="form-toggle">
+                    Already have an account? <a onclick="switchToLogin()">Login here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'http://localhost:5000/api';
         let allProducts = [];
@@ -568,6 +1106,36 @@
         let currentMinPrice = 0;
         let currentMaxPrice = 999999;
         let currentSort = '';
+        let currentUser = null;
+        let authToken = null;
+
+        // Check for stored auth token
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            const user = localStorage.getItem('user');
+            if (token && user) {
+                authToken = token;
+                currentUser = JSON.parse(user);
+                updateHeaderForUser();
+            }
+        }
+
+        // Update header when user logs in
+        function updateHeaderForUser() {
+            if (currentUser) {
+                const headerActions = document.querySelector('.header-actions');
+                const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                headerActions.innerHTML = `
+                    <div class="user-info" onclick="showUserMenu()">
+                        <div class="user-avatar">${initials}</div>
+                        <span>${currentUser.name}</span>
+                    </div>
+                    <div style="cursor: pointer; font-size: 20px;" onclick="viewCart()">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                `;
+            }
+        }
 
         // Fetch products from API
         async function fetchProducts() {
@@ -599,11 +1167,14 @@
                 return;
             }
 
-            container.innerHTML = products.map(product => `
+            container.innerHTML = products.map(product => {
+                const imageUrl = product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/220x220/667eea/ffffff?text=' + encodeURIComponent(product.name);
+                return `
                 <div class="product-card" onclick="viewProduct('${product._id}')">
                     ${product.discount > 0 ? `<div class="discount-badge">${product.discount}% OFF</div>` : ''}
                     ${product.isFeatured ? '<div class="featured-badge">★ FEATURED</div>' : ''}
-                    <img src="${product.images[0]}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/220?text=No+Image'">
+                    <img src="${imageUrl}" alt="${product.name}" class="product-image" 
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/220x220/667eea/ffffff?text=' + encodeURIComponent('${product.name}');">
                     <div class="category-badge">${product.category}</div>
                     <div class="product-name">${product.name}</div>
                     <div>
@@ -627,7 +1198,8 @@
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // Filter by category
@@ -690,8 +1262,17 @@
 
         // View product details
         function viewProduct(productId) {
-            console.log('View product:', productId);
-            showToast('Product details page - Coming soon!');
+            const product = allProducts.find(p => p._id === productId);
+            if (product) {
+                alert(
+                    `📦 ${product.name}\n\n` +
+                    `💰 Price: ₹${product.price.toLocaleString()}\n` +
+                    `⭐ Rating: ${product.rating}/5 (${product.reviews} reviews)\n` +
+                    `📦 Stock: ${product.stock > 0 ? product.stock + ' available' : 'Out of stock'}\n\n` +
+                    `📝 Description:\n${product.description}\n\n` +
+                    `🏷️ Category: ${product.category}`
+                );
+            }
         }
 
         // Show toast notification
@@ -704,18 +1285,285 @@
             }, 3000);
         }
 
-        // Login
+        // Login Modal Functions
         function login() {
-            showToast('Login functionality - Coming soon!');
+            document.getElementById('authModal').classList.add('show');
+            switchToLogin();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('show');
+            clearForms();
+        }
+
+        function switchToLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            clearForms();
+        }
+
+        function switchToRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            clearForms();
+        }
+
+        function clearForms() {
+            document.getElementById('loginError').classList.remove('show');
+            document.getElementById('loginSuccess').classList.remove('show');
+            document.getElementById('registerError').classList.remove('show');
+            document.getElementById('registerSuccess').classList.remove('show');
+            document.querySelectorAll('.form-input').forEach(input => input.value = '');
+        }
+
+        // Handle Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorDiv = document.getElementById('loginError');
+            const successDiv = document.getElementById('loginSuccess');
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save token and user data
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    authToken = data.token;
+                    currentUser = data.user;
+
+                    // Show success message
+                    successDiv.textContent = `Welcome back, ${data.user.name}!`;
+                    successDiv.classList.add('show');
+
+                    // Update UI
+                    updateHeaderForUser();
+
+                    // Close modal after 1 second
+                    setTimeout(() => {
+                        closeAuthModal();
+                        showToast(`Successfully logged in as ${data.user.name}`);
+                    }, 1000);
+                } else {
+                    errorDiv.textContent = data.message || 'Login failed. Please check your credentials.';
+                    errorDiv.classList.add('show');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'Network error. Please check if the server is running.';
+                errorDiv.classList.add('show');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            }
+        }
+
+        // Handle Register
+        async function handleRegister(event) {
+            event.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const phone = document.getElementById('registerPhone').value;
+            const password = document.getElementById('registerPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            const errorDiv = document.getElementById('registerError');
+            const successDiv = document.getElementById('registerSuccess');
+
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+            errorDiv.classList.remove('show');
+            successDiv.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, phone, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save token and user data
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    authToken = data.token;
+                    currentUser = data.user;
+
+                    // Show success message
+                    successDiv.textContent = `Account created successfully! Welcome, ${data.user.name}!`;
+                    successDiv.classList.add('show');
+
+                    // Update UI
+                    updateHeaderForUser();
+
+                    // Close modal after 1.5 seconds
+                    setTimeout(() => {
+                        closeAuthModal();
+                        showToast(`Welcome to E-Shop, ${data.user.name}! 🎉`);
+                    }, 1500);
+                } else {
+                    errorDiv.textContent = data.message || 'Registration failed. Please try again.';
+                    errorDiv.classList.add('show');
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                errorDiv.textContent = 'Network error. Please check if the server is running.';
+                errorDiv.classList.add('show');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            authToken = null;
+            currentUser = null;
+            location.reload();
+        }
+
+        // Show user menu
+        function showUserMenu() {
+            const options = [
+                'Profile',
+                'My Orders',
+                'Logout'
+            ];
+            const choice = confirm('Welcome ' + currentUser.name + '!\n\nClick OK to logout');
+            if (choice) {
+                logout();
+            }
         }
 
         // View cart
         function viewCart() {
-            showToast('Cart page - Coming soon!');
+            if (!currentUser) {
+                showToast('Please login to view your cart');
+                login();
+            } else {
+                showToast('Cart page - Loading...');
+            }
         }
 
-        // Load products on page load
+        // Add to cart with auth check
+        async function addToCart(event, productId, productName) {
+            event.stopPropagation();
+            
+            if (!currentUser) {
+                showToast('Please login to add items to cart');
+                login();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/cart`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ 
+                        productId: productId,
+                        quantity: 1 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast(`✓ ${productName} added to cart!`);
+                } else {
+                    showToast(data.message || 'Failed to add to cart');
+                }
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                showToast('Error adding to cart');
+            }
+        }
+
+        // Hero banner functions
+        function scrollToProducts() {
+            document.querySelector('.products-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showDeals() {
+            // Filter products with discount > 30%
+            const deals = allProducts.filter(p => p.discount > 30);
+            displayProducts(deals);
+            scrollToProducts();
+            showToast(`Found ${deals.length} amazing deals!`);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('authModal');
+            if (event.target === modal) {
+                closeAuthModal();
+            }
+        }
+
+        // Carousel functionality
+        let currentSlide = 0;
+        let carouselInterval;
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const dots = document.querySelectorAll('.carousel-dot');
+            
+            // Remove active class from all
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Add active class to current
+            if (slides[index]) {
+                slides[index].classList.add('active');
+                dots[index].classList.add('active');
+                currentSlide = index;
+            }
+        }
+
+        function nextSlide() {
+            const slides = document.querySelectorAll('.carousel-slide');
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+            // Reset auto-play timer
+            clearInterval(carouselInterval);
+            startCarousel();
+        }
+
+        function startCarousel() {
+            carouselInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+        }
+
+        // Initialize
+        checkAuth();
         fetchProducts();
+        startCarousel();
     </script>
 </body>
 </html>
