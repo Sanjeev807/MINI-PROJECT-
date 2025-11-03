@@ -20,6 +20,15 @@ import OrdersScreen from '../screens/OrdersScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import AboutScreen from '../screens/AboutScreen';
+import ContactScreen from '../screens/ContactScreen';
+import TrackOrderScreen from '../screens/TrackOrderScreen';
+import FAQsScreen from '../screens/FAQsScreen';
+import BlogScreen from '../screens/BlogScreen';
+import ShippingPolicyScreen from '../screens/ShippingPolicyScreen';
+import ReturnPolicyScreen from '../screens/ReturnPolicyScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import TermsConditionsScreen from '../screens/TermsConditionsScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -176,6 +185,51 @@ const AppNavigator = () => {
             name="Notifications" 
             component={NotificationsScreen}
             options={{ title: 'Notifications' }}
+          />
+          <Stack.Screen 
+            name="About" 
+            component={AboutScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="Contact" 
+            component={ContactScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="TrackOrder" 
+            component={TrackOrderScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="FAQs" 
+            component={FAQsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="Blog" 
+            component={BlogScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="ShippingPolicy" 
+            component={ShippingPolicyScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="ReturnPolicy" 
+            component={ReturnPolicyScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="PrivacyPolicy" 
+            component={PrivacyPolicyScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="TermsConditions" 
+            component={TermsConditionsScreen}
+            options={{ headerShown: false }}
           />
         </>
       )}

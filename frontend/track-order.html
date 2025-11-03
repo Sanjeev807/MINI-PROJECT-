@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Order - E-Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid white;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: #6366f1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            color: #212121;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+
+        .content-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .content-section h2 {
+            font-size: 28px;
+            color: #6366f1;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-section li {
+            padding: 10px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .contact-form input {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .contact-form input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .info-box {
+            background: #f0f0ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-box p {
+            margin: 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">E-Shop</a>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Track Your Order</h1>
+
+        <div class="content-section">
+            <p>Track your order status in real-time. Enter your order details below:</p>
+            
+            <form class="contact-form">
+                <input type="text" placeholder="Order ID (e.g., ORD123456)" required>
+                <input type="email" placeholder="Email Address" required>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-search"></i> Track Order
+                </button>
+            </form>
+        </div>
+
+        <div class="content-section">
+            <h2>Order Status Guide</h2>
+            <ul>
+                <li><strong>Order Placed:</strong> Your order has been received and is being processed</li>
+                <li><strong>Processing:</strong> We're preparing your items for shipment</li>
+                <li><strong>Shipped:</strong> Your order is on the way!</li>
+                <li><strong>Out for Delivery:</strong> Your order will be delivered today</li>
+                <li><strong>Delivered:</strong> Your order has been successfully delivered</li>
+            </ul>
+            
+            <div class="info-box">
+                <p><strong>Need Help?</strong> Contact our support team at support@eshop.com or call +91 1800-123-4567</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

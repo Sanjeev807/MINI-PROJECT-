@@ -1,0 +1,237 @@
+    <div style="display:flex; gap:20px;">
+      <div class="thumbnails" id="thumbs"></div>
+      <img id="mainImg" class="main-image" src="" alt="product image">
+      <div style="flex:1; max-width:640px; background:#fff; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+        <div id="carousel" style="position:relative;">
+          <div id="mainImageWrapper" style="text-align:center;">
+          <button id="prevBtn" aria-label="Previous" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); color:#fff; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">‹</button>
+          <button id="nextBtn" aria-label="Next" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); color:#fff; border:none; width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">›</button>
+          <div id="thumbs" style="display:flex; gap:10px; margin-top:12px; justify-content:center; flex-wrap:wrap;"></div>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px; align-items:flex-start;">
+          <h3 id="price" style="color:#111; margin:0; font-size:24px;">₹1,299</h3>
+          <div style="display:flex; gap:12px; width:100%;">
+        </div>
+      </div>
+
+      <div class="details">
+        <div class="card">
+          // Carousel wiring and product fetching
+          const apiBase = 'http://localhost:5000/api/products'
+          // small helper to read query params
+          function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search)
+            return params.get(name)
+          }
+          const id = getQueryParam('id')
+
+          // Elements
+          const mainImage = document.getElementById('mainImage') || document.getElementById('mainImg')
+          const thumbsContainer = document.getElementById('thumbs')
+          const prevBtn = document.getElementById('prevBtn')
+          const nextBtn = document.getElementById('nextBtn')
+          const title = document.getElementById('title') || document.getElementById('pTitle')
+          const description = document.getElementById('description') || document.getElementById('description')
+          const priceEl = document.getElementById('price') || document.getElementById('pPrice')
+          const categoryEl = document.getElementById('category')
+          const addToCartBtn = document.getElementById('addToCartBtn') || document.getElementById('addCartBtn')
+          const buyNowBtn = document.getElementById('buyNowBtn')
+
+          let images = []
+          let currentIndex = 0
+
+          function renderThumbnails() {
+            thumbsContainer.innerHTML = ''
+            images.forEach((src, idx) => {
+              const img = document.createElement('img')
+              img.src = src
+              img.style.width = '64px'
+              img.style.height = '64px'
+              img.style.objectFit = 'cover'
+              img.style.borderRadius = '6px'
+              img.style.cursor = 'pointer'
+              img.style.border = idx === currentIndex ? '2px solid #f97316' : '1px solid #e5e7eb'
+              img.addEventListener('click', () => { currentIndex = idx; updateMain(); })
+              thumbsContainer.appendChild(img)
+            })
+          }
+
+          function updateMain() {
+            if (!images.length) return
+            mainImage.src = images[currentIndex]
+            // refresh thumbnail borders
+            Array.from(thumbsContainer.children).forEach((el, idx) => {
+              el.style.border = idx === currentIndex ? '2px solid #f97316' : '1px solid #e5e7eb'
+            })
+          }
+
+          prevBtn && prevBtn.addEventListener('click', () => {
+            if (!images.length) return
+            currentIndex = (currentIndex - 1 + images.length) % images.length
+            updateMain()
+          })
+          nextBtn && nextBtn.addEventListener('click', () => {
+            if (!images.length) return
+            currentIndex = (currentIndex + 1) % images.length
+            updateMain()
+          })
+
+          async function fetchProduct() {
+            try {
+              const res = await fetch(`${apiBase}/${id}`)
+              if (!res.ok) throw new Error('Product not found')
+              const p = await res.json()
+              title.innerText = p.name
+              description.innerText = p.description
+              priceEl.innerText = `₹${p.price}`
+              categoryEl.innerText = p.category
+
+              images = Array.isArray(p.images) && p.images.length ? p.images : ['https://via.placeholder.com/520']
+              currentIndex = 0
+              renderThumbnails()
+              updateMain()
+
+              addToCartBtn && addToCartBtn.addEventListener('click', () => {
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+                cart.push({ id: p._id, name: p.name, price: p.price, qty: 1 })
+                localStorage.setItem('cart', JSON.stringify(cart))
+                showToast(`${p.name} added to cart!`)
+              })
+
+              buyNowBtn && buyNowBtn.addEventListener('click', () => {
+                window.location.href = 'checkout.html'
+              })
+
+            } catch (err) {
+              console.error(err)
+              showToast('Error loading product')
+            }
+          }
+
+          fetchProduct()
+    .info{margin-top:18px;color:#555}
+
+    @media (max-width:900px){.container{flex-direction:column}.gallery,.details{width:100%}}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html">E-Shop</a>
+    <div style="flex:1"></div>
+  </header>
+
+  <div class="container">
+    <div class="gallery card" id="gallery">
+      <div style="display:flex;gap:12px">
+        <div class="thumbnails" id="thumbs"></div>
+        <img id="mainImg" class="main-image" src="" alt="product image">
+      </div>
+    </div>
+
+    <div class="details">
+      <div class="card">
+        <div class="title" id="pTitle">Loading...</div>
+        <div>
+          <span class="rating" id="pRating">4.5</span>
+          <span id="pReviews" style="color:#666;margin-left:6px"></span>
+        </div>
+
+        <div class="price" id="pPrice">₹0</div>
+        <div class="offers" id="pOffers"></div>
+
+        <div class="buy-actions">
+          <button id="addCartBtn" class="btn add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+          <button id="buyNowBtn" class="btn buy-now"><i class="fas fa-bolt"></i> Buy Now</button>
+        </div>
+
+        <div class="info" id="pInfo"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Parse product id from query string
+    function getQueryParam(name){
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    const productId = getQueryParam('id');
+    const apiBase = 'http://localhost:5000/api/products';
+
+    async function fetchProduct(id){
+      try{
+        const res = await fetch(apiBase + '/' + id);
+        if(!res.ok) throw new Error('Product not found');
+        const prod = await res.json();
+        renderProduct(prod);
+      }catch(err){
+        document.getElementById('pTitle').textContent = 'Product not found';
+        document.getElementById('pInfo').textContent = '' + err;
+      }
+    }
+
+    function renderProduct(p){
+      document.getElementById('pTitle').textContent = p.name;
+      document.getElementById('pRating').textContent = (p.rating || 4.5).toFixed(1);
+      document.getElementById('pReviews').textContent = `${p.reviews || 0} reviews`;
+      document.getElementById('pPrice').textContent = '₹' + (p.price || 0).toLocaleString();
+
+      document.getElementById('pOffers').innerHTML = '<strong>Available offers</strong><ul style="padding-left:18px;margin-top:8px"><li>Bank Offer: 5% cashback</li><li>Buy with Exchange</li></ul>';
+
+      document.getElementById('pInfo').innerHTML = `<p><strong>Category:</strong> ${p.category}</p><p style="margin-top:8px">${p.description}</p>`;
+
+      // images
+      const thumbs = document.getElementById('thumbs');
+      thumbs.innerHTML = '';
+      const mainImg = document.getElementById('mainImg');
+      const images = p.images && p.images.length ? p.images : [p.image || ''];
+      mainImg.src = images[0] || '';
+      images.forEach((src, idx)=>{
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'thumb';
+        img.onclick = ()=> mainImg.src = src;
+        thumbs.appendChild(img);
+      });
+
+      document.getElementById('addCartBtn').addEventListener('click', ()=>{
+        // Add to cart (simple localStorage demo)
+        let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+        cart.push({id:p._id,name:p.name,price:p.price,qty:1});
+        localStorage.setItem('cart',JSON.stringify(cart));
+        showToast(p.name + ' added to cart!');
+      });
+
+      document.getElementById('buyNowBtn').addEventListener('click', ()=>{
+        // redirect to checkout or show message
+        window.location.href = 'checkout.html';
+      });
+    }
+
+    if(productId){ fetchProduct(productId); }
+    else { document.getElementById('pTitle').textContent = 'No product selected'; }
+
+    // Toast notification function
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;font-weight:600;animation:slideUp 0.3s ease';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Add animation keyframes
+      if(!document.getElementById('toastAnimation')) {
+        const style = document.createElement('style');
+        style.id = 'toastAnimation';
+        style.textContent = '@keyframes slideUp { from { bottom:0; opacity:0 } to { bottom:30px; opacity:1 } }';
+        document.head.appendChild(style);
+      }
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

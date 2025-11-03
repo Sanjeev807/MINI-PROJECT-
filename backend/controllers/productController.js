@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const Product = require('../models/Product');
 
 // @desc    Get all products
@@ -7,41 +8,43 @@ exports.getProducts = async (req, res) => {
   try {
     const { category, search, sort, minPrice, maxPrice, page = 1, limit = 20 } = req.query;
 
-    let query = {};
+    let where = {};
+    let order = [];
 
     // Filter by category
     if (category) {
-      query.category = category;
+      where.category = category;
     }
 
     // Search by name or description
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
       ];
     }
 
     // Filter by price range
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      where.price = {};
+      if (minPrice) where.price[Op.gte] = Number(minPrice);
+      if (maxPrice) where.price[Op.lte] = Number(maxPrice);
     }
 
     // Sort options
-    let sortOption = {};
-    if (sort === 'price_low') sortOption = { price: 1 };
-    else if (sort === 'price_high') sortOption = { price: -1 };
-    else if (sort === 'rating') sortOption = { rating: -1 };
-    else sortOption = { createdAt: -1 };
+    if (sort === 'price_low') order.push(['price', 'ASC']);
+    else if (sort === 'price_high') order.push(['price', 'DESC']);
+    else if (sort === 'rating') order.push(['rating', 'DESC']);
+    else order.push(['createdAt', 'DESC']);
 
-    const products = await Product.find(query)
-      .sort(sortOption)
-      .limit(Number(limit))
-      .skip((Number(page) - 1) * Number(limit));
+    const offset = (Number(page) - 1) * Number(limit);
 
-    const count = await Product.countDocuments(query);
+    const { count, rows: products } = await Product.findAndCountAll({
+      where,
+      order,
+      limit: Number(limit),
+      offset
+    });
 
     res.json({
       products,
@@ -59,7 +62,10 @@ exports.getProducts = async (req, res) => {
 // @access  Public
 exports.getFeaturedProducts = async (req, res) => {
   try {
-    const products = await Product.find({ isFeatured: true }).limit(10);
+    const products = await Product.findAll({
+      where: { isFeatured: true },
+      limit: 10
+    });
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -71,7 +77,7 @@ exports.getFeaturedProducts = async (req, res) => {
 // @access  Public
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findByPk(req.params.id);
 
     if (product) {
       res.json(product);
@@ -100,13 +106,13 @@ exports.createProduct = async (req, res) => {
 // @access  Private/Admin
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const [updated] = await Product.update(req.body, {
+      where: { id: req.params.id },
+      returning: true
+    });
 
-    if (product) {
+    if (updated) {
+      const product = await Product.findByPk(req.params.id);
       res.json(product);
     } else {
       res.status(404).json({ message: 'Product not found' });
@@ -121,10 +127,11 @@ exports.updateProduct = async (req, res) => {
 // @access  Private/Admin
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const deleted = await Product.destroy({
+      where: { id: req.params.id }
+    });
 
-    if (product) {
-      await product.deleteOne();
+    if (deleted) {
       res.json({ message: 'Product removed' });
     } else {
       res.status(404).json({ message: 'Product not found' });

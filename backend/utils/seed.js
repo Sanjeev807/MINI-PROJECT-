@@ -1,13 +1,12 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
+const { sequelize } = require('../config/database');
 const Product = require('../models/Product');
-const connectDB = require('../config/db');
 
 const sampleProducts = [
   // ELECTRONICS CATEGORY
   {
     name: 'Samsung Galaxy S23 Ultra',
-    description: 'Latest flagship smartphone with 200MP camera, Snapdragon 8 Gen 2, and S Pen',
+    description: 'Experience the pinnacle of smartphone technology with the Samsung Galaxy S23 Ultra. Features a revolutionary 200MP main camera with advanced Nightography for crystal-clear photos in any lighting. Powered by the blazing-fast Snapdragon 8 Gen 2 processor for seamless gaming, multitasking, and content creation. The built-in S Pen transforms your phone into a creative workspace with precision note-taking and drawing. Enjoy the stunning 6.8" Dynamic AMOLED 2X display with 120Hz refresh rate and Vision Booster for outdoor visibility. All-day power with 5000mAh battery, IP68 water resistance, and premium glass design. Perfect for professionals, photographers, and power users.',
     price: 124999,
     originalPrice: 134999,
     discount: 7,
@@ -26,7 +25,7 @@ const sampleProducts = [
   },
   {
     name: 'Apple MacBook Pro 14',
-    description: 'M3 Pro chip, 18GB RAM, 512GB SSD, Liquid Retina XDR display',
+    description: 'Unleash your creativity with the MacBook Pro 14" powered by the revolutionary M3 Pro chip. Experience up to 18x faster performance than Intel-based models, with 18GB unified memory for effortless multitasking. The stunning 14.2" Liquid Retina XDR display delivers 1000 nits sustained brightness and 1600 nits peak HDR brightness with P3 wide color gamut. Enjoy up to 18 hours of battery life, six Thunderbolt 4 ports, HDMI, SDXC card slot, and a 1080p FaceTime HD camera. Premium aluminum unibody design with Magic Keyboard and Force Touch trackpad. Ideal for video editors, developers, designers, and creative professionals who demand the best performance.',
     price: 199900,
     originalPrice: 219900,
     discount: 9,
@@ -45,7 +44,7 @@ const sampleProducts = [
   },
   {
     name: 'Sony WH-1000XM5 Headphones',
-    description: 'Industry-leading noise cancellation, 30-hour battery life, premium audio',
+    description: 'Immerse yourself in pure sound with Sony\'s flagship WH-1000XM5 wireless headphones. Industry-leading noise cancellation with 8 microphones and dual processors blocks out ambient noise completely. Enjoy exceptional audio quality with 30mm drivers supporting Hi-Res Audio and LDAC codec. Ultra-comfortable lightweight design with soft-fit leather for all-day wear. Incredible 30-hour battery life with quick charging (3 min charge = 3 hours playback). Multipoint connection lets you switch between devices seamlessly. Speak-to-Chat automatically pauses music when you speak. Includes carrying case, audio cable, and USB-C charging. Perfect for travelers, audiophiles, and remote workers seeking focus.',
     price: 29990,
     originalPrice: 34990,
     discount: 14,
@@ -58,7 +57,7 @@ const sampleProducts = [
   },
   {
     name: 'Samsung 4K Smart TV 55 Inch',
-    description: 'Crystal UHD 4K TV with Dynamic Crystal Color and Smart Hub',
+    description: 'Transform your living room into a home cinema with the Samsung 55" Crystal UHD 4K Smart TV. Experience stunning clarity with 3840x2160 resolution and Dynamic Crystal Color technology displaying over a billion shades for lifelike images. The powerful Crystal Processor 4K automatically upscales content to near-4K quality. Smart Hub gives instant access to Netflix, Prime Video, Disney+, YouTube, and 100+ apps with built-in Alexa and Google Assistant voice control. Motion Xcelerator ensures smooth fast-action scenes. Purcolor technology delivers true-to-life colors. Gaming Mode reduces input lag. Sleek AirSlim design with 3 HDMI ports, 2 USB ports, WiFi, and Bluetooth. Perfect for families, movie lovers, and gamers.',
     price: 44990,
     originalPrice: 64990,
     discount: 31,
@@ -77,7 +76,7 @@ const sampleProducts = [
   },
   {
     name: 'Canon EOS M50 Mark II',
-    description: 'Mirrorless camera with 24.1MP sensor, 4K video, WiFi',
+    description: 'Capture stunning photos and videos with the Canon EOS M50 Mark II mirrorless camera. Features a powerful 24.1MP APS-C CMOS sensor and DIGIC 8 processor for exceptional image quality even in low light. Record crystal-clear 4K UHD 24p video with Dual Pixel CMOS AF for smooth autofocus tracking. The 3.0" vari-angle touchscreen LCD flips out for perfect selfies and vlogging. Eye Detection AF ensures sharp portraits. Built-in WiFi and Bluetooth enable instant photo transfer to smartphone via Canon Camera Connect app. Includes vertical video support for social media creators. Compatible with EF-M lenses. Bundle includes 15-45mm kit lens, battery, charger, and strap. Perfect for vloggers, content creators, photography enthusiasts, and aspiring professionals.',
     price: 54990,
     originalPrice: 64990,
     discount: 15,
@@ -98,7 +97,7 @@ const sampleProducts = [
   // FASHION CATEGORY
   {
     name: 'Levi\'s Men\'s Slim Fit Jeans',
-    description: 'Classic 511 Slim Fit jeans in dark blue wash, premium denim',
+    description: 'Upgrade your wardrobe with the iconic Levi\'s 511 Slim Fit Jeans crafted from premium stretch denim. The classic dark blue wash offers a timeless versatile look suitable for casual outings and semi-formal occasions. Engineered with a modern slim fit through hip and thigh with a slightly tapered leg for a contemporary silhouette. Made with soft, comfortable denim that retains its shape wash after wash. Features the signature Levi\'s red tab, leather patch, and riveted pockets for durability. The 5-pocket styling and zip fly provide functionality and classic style. Perfect for everyday wear - pair with sneakers for casual look or dress shoes for smart casual occasions. Available in multiple sizes. Ideal for men who value comfort, quality, and timeless style.',
     price: 2499,
     originalPrice: 3999,
     discount: 37,
@@ -116,7 +115,7 @@ const sampleProducts = [
   },
   {
     name: 'Nike Air Max 270 Running Shoes',
-    description: 'Comfortable running shoes with Max Air unit, breathable mesh',
+    description: 'Step into ultimate comfort with the Nike Air Max 270 featuring the brand\'s biggest heel Air unit yet for incredible cushioning with every step. The engineered mesh upper provides breathability and flexibility while maintaining structured support. The revolutionary 270 degrees of visible Max Air technology delivers all-day comfort whether you\'re running, training, or going about your daily routine. Foam midsole adds extra plush comfort. Rubber outsole with strategic tread pattern ensures excellent traction on various surfaces. The sleek modern design with bold Nike swoosh logo makes a style statement. Pull tabs on tongue and heel allow easy on and off. Available in multiple colorways. Perfect for runners, fitness enthusiasts, sneakerheads, and anyone seeking the perfect blend of performance, comfort, and street style.',
     price: 12995,
     originalPrice: 14995,
     discount: 13,
@@ -135,7 +134,7 @@ const sampleProducts = [
   },
   {
     name: 'Adidas Men\'s T-Shirt',
-    description: 'Premium cotton sports t-shirt with moisture-wicking technology',
+    description: 'Stay cool and comfortable during workouts with the Adidas Men\'s Sports T-Shirt featuring advanced moisture-wicking Climalite technology that pulls sweat away from your skin for rapid evaporation. Made from premium soft cotton blend fabric that feels great against your skin while providing excellent breathability. The regular fit design ensures freedom of movement for all athletic activities including gym workouts, running, yoga, or casual wear. Features the iconic Adidas 3-Stripes on sleeves and logo on chest. Ribbed crew neck maintains its shape wash after wash. The quick-dry fabric makes it perfect for intense training sessions. Available in multiple colors and sizes. Machine washable and designed for durability. Ideal for athletes, fitness enthusiasts, and active individuals who demand performance and comfort without compromising on style.',
     price: 999,
     originalPrice: 1599,
     discount: 38,
@@ -153,7 +152,7 @@ const sampleProducts = [
   },
   {
     name: 'Puma Women\'s Sports Jacket',
-    description: 'Stylish sports jacket with zip closure and side pockets',
+    description: 'Elevate your activewear collection with the Puma Women\'s Sports Jacket combining style, functionality, and performance. Crafted from high-quality polyester with a soft fleece lining for warmth without weight. The full-zip front closure allows easy on-off and adjustable ventilation. Two deep side pockets with zipper closures securely store your phone, keys, and essentials. The athletic fit is designed specifically for women\'s body shape, offering comfort without restriction during workouts or outdoor activities. Features the signature Puma cat logo, ribbed cuffs and hem to seal in warmth, and a stand-up collar for neck protection. Water-resistant outer layer repels light rain. Available in stylish colors. Perfect for running, gym sessions, outdoor sports, yoga, or casual athleisure wear. Ideal for active women who value quality, style, and versatility.',
     price: 2999,
     originalPrice: 4999,
     discount: 40,
@@ -174,7 +173,7 @@ const sampleProducts = [
   // HOME CATEGORY
   {
     name: 'Philips Air Fryer HD9252/90',
-    description: 'Healthier cooking with Rapid Air Technology, 4.1L capacity',
+    description: 'Cook healthier delicious meals with up to 90% less fat using the Philips Air Fryer featuring patented Rapid Air Technology that circulates hot air to fry, bake, grill, and roast with little to no oil. The spacious 4.1L capacity basket is perfect for preparing meals for 4-5 people - cook a whole chicken, 1kg of fries, or multiple servings at once. Digital touchscreen display with 7 preset cooking programs for fries, meat, fish, chicken, cake, and more takes the guesswork out of cooking. Adjustable temperature control up to 200°C and 60-minute timer with auto-shut off. The non-stick basket and removable drawer are dishwasher safe for easy cleanup. QuickClean basket with unique design prevents food sticking. Includes recipe book with 30+ recipes. Safety features include cool-touch housing and non-slip feet. Perfect for health-conscious families, busy professionals, and anyone looking to enjoy crispy fried foods guilt-free.',
     price: 7999,
     originalPrice: 12995,
     discount: 38,
@@ -193,7 +192,7 @@ const sampleProducts = [
   },
   {
     name: 'Prestige Induction Cooktop',
-    description: 'Energy efficient 2000W induction cooktop with auto shut-off',
+    description: 'Experience fast, safe, and energy-efficient cooking with the Prestige 2000W Induction Cooktop that heats food 50% faster than traditional gas stoves while consuming less electricity. The advanced induction technology transfers heat directly to the cookware for precise temperature control and even cooking. Features 8 preset cooking menus including fry, boil, steam, curry, and more with automatic temperature and time settings. Push-button controls with LED display allow easy operation. Auto shut-off feature activates when no cookware is detected, providing safety and energy savings. Overheat protection and voltage surge protection ensure durability. The feather-touch buttons and elegant black glass top are easy to clean - just wipe with a damp cloth. Compatible with induction-ready cookware (ferromagnetic base). Includes free induction-compatible pan. Perfect for modern kitchens, small apartments, hostels, and anyone seeking convenient, safe cooking.',
     price: 2199,
     originalPrice: 3499,
     discount: 37,
@@ -211,7 +210,7 @@ const sampleProducts = [
   },
   {
     name: 'Usha Ceiling Fan',
-    description: 'Energy-efficient 1200mm ceiling fan with decorative design',
+    description: 'Keep your home cool and comfortable with the Usha 1200mm (48-inch) Ceiling Fan featuring a powerful yet energy-efficient motor that delivers high air delivery while consuming minimal electricity, helping you save on power bills. The 3-blade aerodynamic design with optimal blade angle ensures maximum air circulation and whisper-quiet operation even at high speeds. Beautiful decorative finish complements any room décor from modern to traditional. Rust-resistant powder-coated finish ensures long-lasting durability. The double ball bearing motor ensures smooth, vibration-free operation for years. Operates at 1200 RPM delivering impressive airflow. Compatible with standard regulators for speed control. Easy installation with all mounting hardware included. Comes with 2-year manufacturer warranty. Suitable for living rooms, bedrooms, offices, and halls up to 150 sq ft. Perfect for Indian homes seeking reliable cooling, energy savings, and elegant design.',
     price: 1699,
     originalPrice: 2499,
     discount: 32,
@@ -231,7 +230,7 @@ const sampleProducts = [
   // BOOKS CATEGORY
   {
     name: 'The Alchemist by Paulo Coelho',
-    description: 'International bestseller about following your dreams',
+    description: 'Embark on a transformative journey with Paulo Coelho\'s masterpiece "The Alchemist," a timeless international bestseller that has inspired millions of readers worldwide in over 80 languages. Follow the enchanting tale of Santiago, an Andalusian shepherd boy who dreams of finding treasure at the Egyptian pyramids. This philosophical novel beautifully explores themes of destiny, personal legends, and listening to your heart. Coelho\'s simple yet profound prose delivers powerful life lessons about courage, following your dreams, and finding meaning in the journey itself. The book teaches that when you truly desire something, the entire universe conspires to help you achieve it. With 197 pages of wisdom, this quick read leaves a lasting impact on readers of all ages. Perfect for book club discussions, gift-giving, or personal reflection. Essential reading for dreamers, travelers, spiritual seekers, and anyone standing at life\'s crossroads seeking inspiration and direction.',
     price: 299,
     originalPrice: 399,
     discount: 25,
@@ -249,7 +248,7 @@ const sampleProducts = [
   },
   {
     name: 'Atomic Habits by James Clear',
-    description: 'Tiny changes, remarkable results - life-changing habits guide',
+    description: 'Transform your life one tiny change at a time with "Atomic Habits" by James Clear, the #1 New York Times bestseller that has sold over 10 million copies worldwide. This groundbreaking book reveals the surprising power of small habits and how making tiny changes can lead to remarkable results. Clear draws on cutting-edge psychology, neuroscience, and real-world examples to explain how habits form and, most importantly, how to break bad ones and build good ones that stick. Learn the Four Laws of Behavior Change, the proven framework for improving every day. Discover strategies used by Olympic athletes, Fortune 500 companies, and championship-winning coaches. The book provides practical tactics for forming good habits, breaking bad ones, and mastering the tiny behaviors that lead to remarkable results. With 320 pages of actionable insights, clear explanations, and engaging stories, this is your blueprint for personal and professional growth. Perfect for entrepreneurs, students, professionals, and anyone committed to continuous self-improvement and achieving their goals.',
     price: 399,
     originalPrice: 599,
     discount: 33,
@@ -268,7 +267,7 @@ const sampleProducts = [
   },
   {
     name: 'Harry Potter Box Set',
-    description: 'Complete 7-book collection of the magical Harry Potter series',
+    description: 'Enter the magical world of Hogwarts with the complete Harry Potter Box Set featuring all 7 books by J.K. Rowling in a beautiful collector\'s edition. Follow Harry\'s incredible journey from an orphaned boy living under the stairs to the wizard who saved the wizarding world. This complete collection includes: The Philosopher\'s Stone, Chamber of Secrets, Prisoner of Azkaban, Goblet of Fire, Order of the Phoenix, Half-Blood Prince, and Deathly Hallows. Experience the epic tale of friendship, courage, love, and the eternal battle between good and evil that has captivated readers of all ages worldwide. Each book is beautifully bound with stunning cover art. The series offers rich character development, intricate plot lines, and a fully realized magical universe complete with spells, potions, magical creatures, and unforgettable characters like Hermione, Ron, Dumbledore, and Snape. Perfect for introducing young readers to the joy of reading or for adult fans wanting to relive the magic. Ideal gift for birthdays, holidays, or Harry Potter enthusiasts. A timeless treasure for any home library.',
     price: 2999,
     originalPrice: 4999,
     discount: 40,
@@ -289,7 +288,7 @@ const sampleProducts = [
   // SPORTS CATEGORY
   {
     name: 'Adidas Football Size 5',
-    description: 'Professional quality football with thermally bonded panels',
+    description: 'Elevate your game with the Adidas Size 5 Football engineered for match-level performance and recreational play. Features thermally bonded seamless surface technology that ensures perfect spherical shape, predictable flight path, and exceptional durability even in harsh weather conditions. The butyl bladder provides excellent air retention so the ball stays inflated longer. Made from high-quality synthetic leather that\'s soft to touch yet durable enough for intensive use on grass, turf, or hard surfaces. The textured surface enhances grip and control for precise passing, dribbling, and shooting. Official Size 5 (68-70cm circumference) regulation ball suitable for players aged 12+ and adult matches. Features the iconic Adidas three stripes and logo. Meets FIFA quality standards. Suitable for competitive matches, training sessions, or backyard fun. Perfect for football enthusiasts, school teams, amateur clubs, and anyone passionate about the beautiful game.',
     price: 1499,
     originalPrice: 2499,
     discount: 40,
@@ -307,7 +306,7 @@ const sampleProducts = [
   },
   {
     name: 'Yonex Badminton Racket',
-    description: 'Lightweight carbon fiber racket for professional play',
+    description: 'Dominate the court with the Yonex professional-grade badminton racket crafted from premium high-modulus carbon fiber for exceptional strength-to-weight ratio. At just 85g (unstrung), this ultra-lightweight racket enables lightning-fast reactions, powerful smashes, and precise net shots without causing arm fatigue. The isometric head shape expands the sweet spot by 7% compared to conventional round frames, providing more consistent power even on off-center hits. Aero-Frame design reduces air resistance for faster swing speed. Built-in T-Joint technology reinforces the connection between frame and shaft for enhanced durability and torque. G4 grip size fits most hand sizes comfortably with anti-slip texture. Recommended string tension: 24-26 lbs. Comes with protective full-length cover. Suitable for intermediate to advanced players. Perfect for competitive tournaments, club matches, serious training, and players looking to improve their game with professional-quality equipment trusted by Olympic champions.',
     price: 3499,
     originalPrice: 5999,
     discount: 42,
@@ -326,7 +325,7 @@ const sampleProducts = [
   },
   {
     name: 'Nike Gym Dumbbell Set',
-    description: 'Adjustable dumbbell set 2-20kg with comfortable grip',
+    description: 'Build strength and muscle with the versatile Nike Adjustable Dumbbell Set offering weight range from 2kg to 20kg per dumbbell, effectively replacing 10 pairs of fixed dumbbells and saving space in your home gym. The innovative quick-adjustment dial system lets you select your desired weight in seconds - simply turn the dial to choose from 2, 4, 6, 8, 10, 12, 15, 17, or 20kg. Premium iron weight plates with durable black finish ensure longevity. The ergonomic contoured handles with textured rubber coating provide secure, comfortable grip preventing slippage during intense workouts. Compact storage trays included keep your space organized. Perfect for progressive overload training - gradually increase weight as you get stronger. Suitable for all fitness levels from beginners to advanced. Ideal for various exercises including bicep curls, shoulder presses, chest presses, lunges, and more. Perfect for home gyms, apartment workouts, personal trainers, and fitness enthusiasts seeking versatile, space-saving strength training equipment.',
     price: 4999,
     originalPrice: 7999,
     discount: 38,
@@ -345,7 +344,7 @@ const sampleProducts = [
   },
   {
     name: 'Puma Gym Bag',
-    description: 'Spacious sports duffle bag with multiple compartments',
+    description: 'Stay organized on the go with the Puma Gym Duffle Bag featuring a spacious 40-liter capacity perfect for gym sessions, weekend trips, or sports practice. The main compartment easily fits workout clothes, shoes, towel, and more, while multiple specialized compartments keep your gear organized. Dedicated ventilated shoe compartment with moisture barrier keeps sweaty shoes separate from clean clothes. Zippered side pocket for water bottle. Front quick-access pocket for phone, keys, wallet, and essentials. Internal zippered pocket for valuables. Made from durable water-resistant polyester fabric that withstands daily wear and tear. Padded adjustable shoulder strap for comfortable carrying, plus dual top handles for grab-and-go convenience. YKK zippers ensure smooth operation and longevity. Features the iconic Puma logo. Available in stylish colorways. Compact yet spacious design. Perfect for gym-goers, athletes, travelers, students, and active individuals who need reliable, stylish gear transportation for workouts, sports, or weekend adventures.',
     price: 1299,
     originalPrice: 2499,
     discount: 48,
@@ -365,14 +364,16 @@ const sampleProducts = [
 
 const seedDatabase = async () => {
   try {
-    await connectDB();
-
-    // Clear existing products
-    await Product.deleteMany({});
-    console.log('Existing products cleared');
+    // Sync database and create tables
+    await sequelize.sync({ force: true }); // This will drop existing tables
+    console.log('Database synced');
 
     // Insert sample products
-    await Product.insertMany(sampleProducts);
+    await Product.bulkCreate(sampleProducts.map(product => ({
+      ...product,
+      specifications: Object.fromEntries(product.specifications || new Map())
+    })));
+    
     console.log('✅ Sample products seeded successfully!');
     console.log(`📦 Added ${sampleProducts.length} products`);
 

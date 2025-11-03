@@ -1,13 +1,22 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const { connectDB, sequelize } = require('./config/database');
 const initializeFirebase = require('./config/firebaseAdmin');
 
 const app = express();
 
-// Connect to MongoDB
-connectDB();
+// Connect to PostgreSQL and sync models
+(async () => {
+  try {
+    await connectDB();
+    await sequelize.sync({ alter: true }); // This will update table schemas based on model changes
+    console.log('✅ Database tables synchronized successfully');
+  } catch (error) {
+    console.error('❌ Error syncing database tables:', error);
+    process.exit(1);
+  }
+})();
 
 // Initialize Firebase Admin SDK for Push Notifications
 initializeFirebase();

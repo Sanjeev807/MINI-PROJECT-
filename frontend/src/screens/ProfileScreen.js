@@ -82,15 +82,56 @@ const ProfileScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
-          <MenuItem icon="help" title="Help & Support" onPress={() => {}} />
-          <MenuItem icon="info" title="About Us" onPress={() => {}} />
+          <Text style={styles.sectionTitle}>Support & Information</Text>
+          <MenuItem 
+            icon="info" 
+            title="About Us" 
+            onPress={() => navigation.navigate('About')} 
+          />
+          <MenuItem 
+            icon="contact-mail" 
+            title="Contact Us" 
+            onPress={() => navigation.navigate('Contact')} 
+          />
+          <MenuItem 
+            icon="track-changes" 
+            title="Track Order" 
+            onPress={() => navigation.navigate('TrackOrder')} 
+          />
+          <MenuItem 
+            icon="help" 
+            title="FAQs" 
+            onPress={() => navigation.navigate('FAQs')} 
+          />
+          <MenuItem 
+            icon="article" 
+            title="Blog" 
+            onPress={() => navigation.navigate('Blog')} 
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Policies</Text>
+          <MenuItem 
+            icon="local-shipping" 
+            title="Shipping Policy" 
+            onPress={() => navigation.navigate('ShippingPolicy')} 
+          />
+          <MenuItem 
+            icon="assignment-return" 
+            title="Return Policy" 
+            onPress={() => navigation.navigate('ReturnPolicy')} 
+          />
+          <MenuItem 
+            icon="privacy-tip" 
+            title="Privacy Policy" 
+            onPress={() => navigation.navigate('PrivacyPolicy')} 
+          />
           <MenuItem
             icon="description"
             title="Terms & Conditions"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('TermsConditions')}
           />
-          <MenuItem icon="privacy-tip" title="Privacy Policy" onPress={() => {}} />
         </View>
 
         <View style={styles.section}>

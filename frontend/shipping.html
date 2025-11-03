@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Policy - E-Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid white;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: #6366f1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            color: #212121;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+
+        .content-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .content-section h2 {
+            font-size: 28px;
+            color: #6366f1;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content-section h3 {
+            font-size: 20px;
+            color: #212121;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .content-section p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-section li {
+            padding: 10px 0;
+            color: #555;
+            line-height: 1.6;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .content-section li:before {
+            content: "✓";
+            color: #6366f1;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">E-Shop</a>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Shipping Policy</h1>
+
+        <div class="content-section">
+            <p>At E-Shop, we strive to deliver your orders quickly and efficiently. Here's everything you need to know about our shipping process.</p>
+            
+            <h2>Shipping Methods</h2>
+            
+            <h3>Standard Shipping (Free on orders above ₹500)</h3>
+            <ul>
+                <li>Delivery Time: 3-7 business days</li>
+                <li>Available across India</li>
+                <li>Track your order online</li>
+            </ul>
+            
+            <h3>Express Shipping (₹99)</h3>
+            <ul>
+                <li>Delivery Time: 1-3 business days</li>
+                <li>Available in major cities</li>
+                <li>Priority processing</li>
+            </ul>
+            
+            <h3>Same-Day Delivery (₹199)</h3>
+            <ul>
+                <li>Delivery Time: Same day (orders before 12 PM)</li>
+                <li>Available in select metro cities</li>
+                <li>Perfect for urgent needs</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Shipping Coverage</h2>
+            <p>We deliver to all serviceable pin codes across India. Enter your pin code at checkout to check if delivery is available in your area.</p>
+            
+            <h3>Processing Time</h3>
+            <p>Orders are typically processed within 24-48 hours. You'll receive a confirmation email once your order ships with tracking information.</p>
+            
+            <h3>International Shipping</h3>
+            <p>Currently, we only ship within India. International shipping will be available soon!</p>
+        </div>
+    </div>
+</body>
+</html>
