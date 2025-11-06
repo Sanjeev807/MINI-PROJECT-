@@ -16,7 +16,7 @@ exports.register = async (req, res) => {
     const { name, email, password, phone, fcmToken } = req.body;
 
     // Check if user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ where: { email } });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -33,17 +33,18 @@ exports.register = async (req, res) => {
 
     if (user) {
       res.status(201).json({
-        _id: user._id,
+        _id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
-        token: generateToken(user._id)
+        token: generateToken(user.id)
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
+    console.error('Register error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -56,7 +57,7 @@ exports.login = async (req, res) => {
     const { email, password, fcmToken } = req.body;
 
     // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ where: { email } });
 
     if (user && (await user.matchPassword(password))) {
       // Update FCM token if provided
@@ -66,17 +67,18 @@ exports.login = async (req, res) => {
       }
 
       res.json({
-        _id: user._id,
+        _id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
-        token: generateToken(user._id)
+        token: generateToken(user.id)
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -86,11 +88,11 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (user) {
       res.json({
-        _id: user._id,
+        _id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
@@ -101,6 +103,7 @@ exports.getProfile = async (req, res) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
+    console.error('Get profile error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -110,7 +113,7 @@ exports.getProfile = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (user) {
       user.name = req.body.name || user.name;
@@ -125,18 +128,19 @@ exports.updateProfile = async (req, res) => {
       const updatedUser = await user.save();
 
       res.json({
-        _id: updatedUser._id,
+        _id: updatedUser.id,
         name: updatedUser.name,
         email: updatedUser.email,
         phone: updatedUser.phone,
         address: updatedUser.address,
         role: updatedUser.role,
-        token: generateToken(updatedUser._id)
+        token: generateToken(updatedUser.id)
       });
     } else {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
+    console.error('Update profile error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -148,7 +152,7 @@ exports.updateFCMToken = async (req, res) => {
   try {
     const { fcmToken } = req.body;
     
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
     
     if (user) {
       user.fcmToken = fcmToken;
@@ -159,6 +163,7 @@ exports.updateFCMToken = async (req, res) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
+    console.error('Update FCM token error:', error);
     res.status(500).json({ message: error.message });
   }
 };

@@ -1,37 +1,28 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const cartItemSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true
+const Cart = sequelize.define('Cart', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1,
-    default: 1
-  }
-});
-
-const cartSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    unique: true,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
   },
-  items: [cartItemSchema],
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  items: {
+    type: DataTypes.JSONB,
+    defaultValue: []
   }
+}, {
+  timestamps: true,
+  tableName: 'carts'
 });
 
-// Update the updatedAt timestamp before saving
-cartSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-module.exports = mongoose.model('Cart', cartSchema);
+module.exports = Cart;

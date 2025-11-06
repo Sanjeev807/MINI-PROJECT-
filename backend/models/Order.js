@@ -1,64 +1,62 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 
-const orderItemSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true
+const Order = sequelize.define('Order', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  name: String,
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
   },
-  price: {
-    type: Number,
-    required: true
-  }
-});
-
-const orderSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  items: {
+    type: DataTypes.JSONB,
+    allowNull: false,
+    defaultValue: []
   },
-  items: [orderItemSchema],
   shippingAddress: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    zipCode: { type: String, required: true },
-    country: { type: String, required: true }
+    type: DataTypes.JSONB,
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Shipping address is required' }
+    }
   },
   paymentMethod: {
-    type: String,
-    required: true,
-    enum: ['card', 'upi', 'netbanking', 'cod']
+    type: DataTypes.ENUM('card', 'upi', 'netbanking', 'cod'),
+    allowNull: false
   },
   paymentStatus: {
-    type: String,
-    enum: ['pending', 'completed', 'failed'],
-    default: 'pending'
+    type: DataTypes.ENUM('pending', 'completed', 'failed'),
+    defaultValue: 'pending'
   },
   totalAmount: {
-    type: Number,
-    required: true,
-    min: 0
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      min: { args: [0], msg: 'Total amount cannot be negative' }
+    }
   },
   status: {
-    type: String,
-    enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
+    type: DataTypes.ENUM('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'),
+    defaultValue: 'pending'
   },
   orderDate: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
   deliveryDate: {
-    type: Date
+    type: DataTypes.DATE,
+    allowNull: true
   }
+}, {
+  timestamps: true,
+  tableName: 'orders'
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = Order;
