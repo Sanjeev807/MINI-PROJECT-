@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
         setUser(JSON.parse(storedUser));
       }
     } catch (error) {
-      console.error('Error loading stored auth:', error);
+      // Error loading stored auth - fail silently in production
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Login error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Login failed' 
@@ -78,7 +77,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Registration error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Registration failed' 
@@ -95,7 +93,7 @@ export const AuthProvider = ({ children }) => {
       setToken(null);
       setUser(null);
     } catch (error) {
-      console.error('Logout error:', error);
+      // Error during logout - fail silently in production
     }
   };
 
@@ -109,7 +107,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Update profile error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Update failed' 

@@ -26,7 +26,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
-    console.error('API Error:', error.response?.data || error.message);
+    // API Error - fail silently in production
     return Promise.reject(error);
   }
 );

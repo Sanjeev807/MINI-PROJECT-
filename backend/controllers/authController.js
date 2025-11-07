@@ -44,7 +44,6 @@ exports.register = async (req, res) => {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
-    console.error('Register error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -78,7 +77,6 @@ exports.login = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -103,7 +101,6 @@ exports.getProfile = async (req, res) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
-    console.error('Get profile error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -140,7 +137,6 @@ exports.updateProfile = async (req, res) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
-    console.error('Update profile error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -163,7 +159,6 @@ exports.updateFCMToken = async (req, res) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
-    console.error('Update FCM token error:', error);
     res.status(500).json({ message: error.message });
   }
 };

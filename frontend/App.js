@@ -16,7 +16,7 @@ const App = () => {
           await setupNotificationHandlers();
         }
       } catch (error) {
-        console.error('Failed to initialize notifications:', error);
+        // Failed to initialize notifications - fail silently in production
       }
     };
 

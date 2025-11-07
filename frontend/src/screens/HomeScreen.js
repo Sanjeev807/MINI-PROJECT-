@@ -42,7 +42,6 @@ const HomeScreen = ({ navigation }) => {
       setFeaturedProducts(featuredRes.data);
       setAllProducts(allRes.data.products);
     } catch (error) {
-      console.error('Error fetching products:', error);
       Alert.alert('Error', 'Failed to load products');
     } finally {
       setLoading(false);

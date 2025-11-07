@@ -30,7 +30,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(JSON.parse(storedCart));
       }
     } catch (error) {
-      console.error('Error loading cart:', error);
+      // Error loading cart - fail silently in production
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,7 @@ export const CartProvider = ({ children }) => {
     try {
       await AsyncStorage.setItem('cart', JSON.stringify(cartItems));
     } catch (error) {
-      console.error('Error saving cart:', error);
+      // Error saving cart - fail silently in production
     }
   };
 

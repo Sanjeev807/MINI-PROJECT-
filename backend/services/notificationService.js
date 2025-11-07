@@ -16,7 +16,6 @@ exports.sendNotificationToUser = async (userId, title, body, data = {}, type = '
     const user = await User.findById(userId);
     
     if (!user || !user.fcmToken) {
-      console.log(`No FCM token found for user ${userId}`);
       return { success: false, error: 'No FCM token' };
     }
 
@@ -59,11 +58,10 @@ exports.sendNotificationToUser = async (userId, title, body, data = {}, type = '
     };
 
     const response = await admin.messaging().send(message);
-    console.log(`✅ Notification sent to user ${userId}:`, response);
     
     return { success: true, messageId: response };
   } catch (error) {
-    console.error(`❌ Error sending notification to user ${userId}:`, error.message);
+    // Error sending notification - fail silently in production
     
     // If token is invalid, remove it from user
     if (error.code === 'messaging/invalid-registration-token' || 
@@ -88,7 +86,6 @@ exports.sendNotificationToAll = async (title, body, data = {}, type = 'general')
     const users = await User.find({ fcmToken: { $ne: null } });
     
     if (users.length === 0) {
-      console.log('No users with FCM tokens found');
       return { successCount: 0, failureCount: 0 };
     }
 
@@ -136,8 +133,6 @@ exports.sendNotificationToAll = async (title, body, data = {}, type = 'general')
 
     const response = await admin.messaging().sendEachForMulticast(message);
     
-    console.log(`✅ Broadcast sent: ${response.successCount} successful, ${response.failureCount} failed`);
-    
     // Remove invalid tokens
     if (response.failureCount > 0) {
       const failedTokens = [];
@@ -158,7 +153,7 @@ exports.sendNotificationToAll = async (title, body, data = {}, type = 'general')
       failureCount: response.failureCount
     };
   } catch (error) {
-    console.error('❌ Error sending broadcast notification:', error.message);
+    // Error sending broadcast notification - fail silently in production
     throw error;
   }
 };
