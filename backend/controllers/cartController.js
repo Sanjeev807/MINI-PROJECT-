@@ -6,12 +6,26 @@ const Product = require('../models/Product');
 // @access  Private
 exports.getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    const cart = await Cart.findOne({ where: { userId: req.user.id } });
 
     if (cart) {
-      res.json(cart);
+      // Populate product details for items
+      const itemsWithProducts = await Promise.all(
+        cart.items.map(async (item) => {
+          const product = await Product.findByPk(item.productId);
+          return {
+            ...item,
+            product: product
+          };
+        })
+      );
+      
+      res.json({
+        ...cart.toJSON(),
+        items: itemsWithProducts
+      });
     } else {
-      res.json({ user: req.user._id, items: [] });
+      res.json({ userId: req.user.id, items: [] });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -25,8 +39,8 @@ exports.addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
-    // Check if product exists
-    const product = await Product.findById(productId);
+    // Check if product exists (using Sequelize syntax)
+    const product = await Product.findByPk(productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -36,33 +50,46 @@ exports.addToCart = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient stock' });
     }
 
-    let cart = await Cart.findOne({ user: req.user._id });
+    let cart = await Cart.findOne({ where: { userId: req.user.id } });
 
     if (cart) {
       // Check if product already in cart
-      const itemIndex = cart.items.findIndex(
-        item => item.product.toString() === productId
-      );
+      const items = cart.items || [];
+      const itemIndex = items.findIndex(item => item.productId === productId);
 
       if (itemIndex > -1) {
         // Update quantity
-        cart.items[itemIndex].quantity += quantity;
+        items[itemIndex].quantity += quantity;
       } else {
         // Add new item
-        cart.items.push({ product: productId, quantity });
+        items.push({ productId: productId, quantity });
       }
+      
+      cart.items = items;
+      await cart.save();
     } else {
       // Create new cart
       cart = await Cart.create({
-        user: req.user._id,
-        items: [{ product: productId, quantity }]
+        userId: req.user.id,
+        items: [{ productId: productId, quantity }]
       });
     }
 
-    await cart.save();
-    const updatedCart = await Cart.findById(cart._id).populate('items.product');
+    // Return cart with populated product details
+    const itemsWithProducts = await Promise.all(
+      cart.items.map(async (item) => {
+        const product = await Product.findByPk(item.productId);
+        return {
+          ...item,
+          product: product
+        };
+      })
+    );
 
-    res.json(updatedCart);
+    res.json({
+      ...cart.toJSON(),
+      items: itemsWithProducts
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -74,28 +101,44 @@ exports.addToCart = async (req, res) => {
 exports.updateCartItem = async (req, res) => {
   try {
     const { quantity } = req.body;
-    const cart = await Cart.findOne({ user: req.user._id });
+    const cart = await Cart.findOne({ where: { userId: req.user.id } });
 
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    const item = cart.items.id(req.params.itemId);
-    if (!item) {
+    const items = cart.items || [];
+    const itemIndex = items.findIndex(item => item.productId === parseInt(req.params.itemId));
+    
+    if (itemIndex === -1) {
       return res.status(404).json({ message: 'Item not found in cart' });
     }
 
-    // Check stock
-    const product = await Product.findById(item.product);
+    // Check stock (using Sequelize syntax)
+    const product = await Product.findByPk(items[itemIndex].productId);
     if (product.stock < quantity) {
       return res.status(400).json({ message: 'Insufficient stock' });
     }
 
-    item.quantity = quantity;
+    items[itemIndex].quantity = quantity;
+    cart.items = items;
     await cart.save();
 
-    const updatedCart = await Cart.findById(cart._id).populate('items.product');
-    res.json(updatedCart);
+    // Return cart with populated product details
+    const itemsWithProducts = await Promise.all(
+      cart.items.map(async (item) => {
+        const product = await Product.findByPk(item.productId);
+        return {
+          ...item,
+          product: product
+        };
+      })
+    );
+
+    res.json({
+      ...cart.toJSON(),
+      items: itemsWithProducts
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -106,20 +149,32 @@ exports.updateCartItem = async (req, res) => {
 // @access  Private
 exports.removeFromCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const cart = await Cart.findOne({ where: { userId: req.user.id } });
 
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    cart.items = cart.items.filter(
-      item => item._id.toString() !== req.params.itemId
+    const items = cart.items || [];
+    cart.items = items.filter(item => item.productId !== parseInt(req.params.itemId));
+    
+    await cart.save();
+
+    // Return cart with populated product details
+    const itemsWithProducts = await Promise.all(
+      cart.items.map(async (item) => {
+        const product = await Product.findByPk(item.productId);
+        return {
+          ...item,
+          product: product
+        };
+      })
     );
 
-    await cart.save();
-    const updatedCart = await Cart.findById(cart._id).populate('items.product');
-
-    res.json(updatedCart);
+    res.json({
+      ...cart.toJSON(),
+      items: itemsWithProducts
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -130,7 +185,7 @@ exports.removeFromCart = async (req, res) => {
 // @access  Private
 exports.clearCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id });
+    const cart = await Cart.findOne({ where: { userId: req.user.id } });
 
     if (cart) {
       cart.items = [];
