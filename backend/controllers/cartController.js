@@ -1,5 +1,6 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const { sendNotificationToUser } = require('../services/notificationService');
 
 // @desc    Get user cart
 // @route   GET /api/cart
@@ -90,6 +91,26 @@ exports.addToCart = async (req, res) => {
       ...cart.toJSON(),
       items: itemsWithProducts
     });
+
+    // Send notification when item is added to cart
+    try {
+      await sendNotificationToUser(
+        req.user.id,
+        '🛒 Item Added to Cart!',
+        `${product.name} has been added to your cart`,
+        { 
+          productId: productId, 
+          productName: product.name,
+          cartId: cart.id,
+          type: 'cart_add'
+        },
+        'cart'
+      );
+      console.log('📱 Cart notification sent successfully');
+    } catch (notificationError) {
+      console.log('⚠️ Notification failed:', notificationError.message);
+    }
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

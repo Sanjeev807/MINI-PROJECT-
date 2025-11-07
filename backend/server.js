@@ -31,12 +31,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files for admin panel
+app.use(express.static('../frontend'));
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Health check
 app.get('/', (req, res) => {
@@ -47,7 +51,8 @@ app.get('/', (req, res) => {
       products: '/api/products',
       cart: '/api/cart',
       orders: '/api/orders',
-      notifications: '/api/notifications'
+      notifications: '/api/notifications',
+      admin: '/api/admin'
     }
   });
 });
@@ -66,4 +71,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📱 Push Notifications enabled via Firebase Cloud Messaging`);
+  console.log(`🔧 Admin Panel available at http://localhost:${PORT}/admin.html`);
 });

@@ -6,9 +6,11 @@ const { sendNotificationToUser, sendNotificationToAll } = require('../services/n
 // @access  Private
 exports.getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ user: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const notifications = await Notification.findAll({
+      where: { userId: req.user.id },
+      order: [['createdAt', 'DESC']],
+      limit: 50
+    });
 
     res.json(notifications);
   } catch (error) {
@@ -21,9 +23,14 @@ exports.getNotifications = async (req, res) => {
 // @access  Private
 exports.markAsRead = async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findOne({
+      where: { 
+        id: req.params.id,
+        userId: req.user.id
+      }
+    });
 
-    if (notification && notification.user.toString() === req.user._id.toString()) {
+    if (notification) {
       notification.isRead = true;
       await notification.save();
       res.json(notification);
@@ -40,9 +47,14 @@ exports.markAsRead = async (req, res) => {
 // @access  Private
 exports.markAllAsRead = async (req, res) => {
   try {
-    await Notification.updateMany(
-      { user: req.user._id, isRead: false },
-      { isRead: true }
+    await Notification.update(
+      { isRead: true },
+      { 
+        where: { 
+          userId: req.user.id, 
+          isRead: false 
+        }
+      }
     );
 
     res.json({ message: 'All notifications marked as read' });
@@ -90,10 +102,15 @@ exports.sendToAll = async (req, res) => {
 // @access  Private
 exports.deleteNotification = async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const notification = await Notification.findOne({
+      where: { 
+        id: req.params.id,
+        userId: req.user.id
+      }
+    });
 
-    if (notification && notification.user.toString() === req.user._id.toString()) {
-      await notification.deleteOne();
+    if (notification) {
+      await notification.destroy();
       res.json({ message: 'Notification deleted' });
     } else {
       res.status(404).json({ message: 'Notification not found' });

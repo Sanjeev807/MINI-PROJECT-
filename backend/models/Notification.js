@@ -30,7 +30,13 @@ const Notification = sequelize.define('Notification', {
     }
   },
   type: {
-    type: DataTypes.ENUM('order', 'promotion', 'general', 'delivery'),
+    type: DataTypes.ENUM(
+      'order', 'promotion', 'general', 'delivery', 'cart',
+      'new_arrival', 'price_drop', 'back_in_stock', 'cart_reminder', 
+      'abandoned_cart', 'order_confirmation', 'order_shipped', 'order_delivered',
+      'daily_deal', 'product_recommendation', 'loyalty_points', 'app_update',
+      'login_alert', 'password_change', 'payment_failed', 'rate_experience', 'feedback_request'
+    ),
     defaultValue: 'general'
   },
   data: {
