@@ -4,10 +4,12 @@
   "description": "E-commerce Backend API with Push Notifications",
   "main": "server.js",
   "scripts": {
-    "start": "NODE_ENV=production node server.js",
-    "dev": "NODE_ENV=development nodemon server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
     "dev:fresh": "bash start-server.sh",
-    "prod": "NODE_ENV=production node server.js > logs/app.log 2>&1",
+    "dev:win": "set NODE_ENV=development && nodemon server.js",
+    "start:win": "set NODE_ENV=production && node server.js",
+    "prod": "cross-env NODE_ENV=production node server.js > logs/app.log 2>&1",
     "seed": "node utils/seed.js",
     "kill-port": "npx kill-port 5000",
     "logs": "tail -f logs/app.log",
@@ -36,6 +38,7 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "kill-port": "^2.0.1",
     "nodemon": "^3.0.1"
   }
