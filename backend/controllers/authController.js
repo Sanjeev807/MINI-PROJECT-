@@ -166,3 +166,26 @@ exports.updateFCMToken = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Logout user (clear FCM token)
+// @route   POST /api/auth/logout
+// @access  Private
+exports.logout = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    
+    if (user) {
+      // Clear FCM token on logout for security
+      user.fcmToken = null;
+      await user.save();
+      
+      logger.info(`User logged out: ${user.email}`);
+      res.json({ message: 'Logged out successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    logger.error('Error during logout:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -2098,17 +2098,28 @@
         }
 
         // Periodically check for new notifications
+        let notificationPollingInterval = null;
+
         function startNotificationPolling() {
-            if (currentUser) {
+            if (currentUser && !notificationPollingInterval) {
                 // Fetch notifications immediately
                 fetchNotifications();
                 
                 // Then fetch every 30 seconds
-                setInterval(() => {
+                notificationPollingInterval = setInterval(() => {
                     if (currentUser) {
                         fetchNotifications();
+                    } else {
+                        stopNotificationPolling();
                     }
                 }, 30000);
+            }
+        }
+
+        function stopNotificationPolling() {
+            if (notificationPollingInterval) {
+                clearInterval(notificationPollingInterval);
+                notificationPollingInterval = null;
             }
         }
 
@@ -2291,12 +2302,38 @@
         }
 
         // Logout function
-        function logout() {
+        async function logout() {
+            try {
+                // Call backend logout endpoint if user is authenticated
+                if (authToken) {
+                    const response = await fetch(`${API_URL}/auth/logout`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.warn('Logout endpoint failed, continuing with local logout');
+                    }
+                }
+            } catch (error) {
+                console.warn('Error calling logout endpoint:', error);
+                // Continue with local logout even if backend call fails
+            }
+            
             // Clear authentication data
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
             authToken = null;
             currentUser = null;
+            
+            // Clear any FCM token data
+            localStorage.removeItem('fcmToken');
+            
+            // Stop notification polling
+            stopNotificationPolling();
             
             // Show success notification
             showModernToast('👋 Successfully logged out! See you again soon.', 'success');
@@ -2337,17 +2374,37 @@
                     <small style="display: block; color: #666; margin-top: 2px;">${currentUser.email}</small>
                 </div>
                 <div style="padding: 8px 0;">
-                    <a href="#" onclick="showProfile(); closeUserMenu();" style="display: block; padding: 12px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0;">
+                    <a href="#" class="menu-profile" style="display: block; padding: 12px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0;">
                         👤 My Profile
                     </a>
-                    <a href="#" onclick="showOrders(); closeUserMenu();" style="display: block; padding: 12px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0;">
+                    <a href="#" class="menu-orders" style="display: block; padding: 12px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0;">
                         📦 My Orders
                     </a>
-                    <a href="#" onclick="confirmLogout(); closeUserMenu();" style="display: block; padding: 12px 15px; text-decoration: none; color: #e74c3c;">
+                    <a href="#" class="menu-logout" style="display: block; padding: 12px 15px; text-decoration: none; color: #e74c3c;">
                         🚪 Logout
                     </a>
                 </div>
             `;
+
+            // Add proper event listeners
+            menu.querySelector('.menu-profile').addEventListener('click', (e) => {
+                e.preventDefault();
+                showProfile();
+                closeUserMenu();
+            });
+            
+            menu.querySelector('.menu-orders').addEventListener('click', (e) => {
+                e.preventDefault();
+                showOrders();
+                closeUserMenu();
+            });
+            
+            menu.querySelector('.menu-logout').addEventListener('click', async (e) => {
+                e.preventDefault();
+                console.log('🚪 Logout menu item clicked!');
+                closeUserMenu();
+                await confirmLogout();
+            });
 
             // Position the menu relative to the user icon
             const userIcon = document.querySelector('.user-info');
@@ -2372,30 +2429,438 @@
             if (menu) menu.remove();
         }
 
-        function showProfile() {
-            showModernToast('👤 Profile page - Coming soon!', 'info');
+        // Show user profile
+        async function showProfile() {
+            if (!currentUser) {
+                showToast('Please login to view your profile');
+                login();
+                return;
+            }
+            
+            try {
+                console.log('👤 Fetching profile data...');
+                const response = await fetch(`${API_URL}/auth/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const profileData = await response.json();
+                    console.log('👤 Profile data received:', profileData);
+                    showProfileModal(profileData);
+                } else {
+                    console.error('❌ Failed to fetch profile');
+                    showToast('Failed to load profile', 'error');
+                }
+            } catch (error) {
+                console.error('🚨 Profile error:', error);
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        // Show profile in a modal
+        function showProfileModal(profileData) {
+            const initials = profileData.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            const profileHTML = `
+                <div class="profile-content" style="text-align: center;">
+                    <div class="profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: bold; margin: 0 auto 20px;">
+                        ${initials}
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; color: #333; margin-bottom: 5px;">👤 Full Name:</label>
+                            <input type="text" id="profileName" value="${profileData.name}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; color: #333; margin-bottom: 5px;">📧 Email:</label>
+                            <input type="email" id="profileEmail" value="${profileData.email}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; color: #333; margin-bottom: 5px;">📱 Phone:</label>
+                            <input type="tel" id="profilePhone" value="${profileData.phone || ''}" placeholder="Enter phone number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-weight: bold; color: #333; margin-bottom: 5px;">🏠 Address:</label>
+                            <textarea id="profileAddress" placeholder="Enter your address" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical; min-height: 80px; box-sizing: border-box;">${profileData.address ? JSON.stringify(profileData.address) : ''}</textarea>
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                            <button onclick="updateProfile()" style="flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold;">💾 Update Profile</button>
+                            <button onclick="closeModal()" style="padding: 12px 20px; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: bold;">Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 10px; border-left: 4px solid #28a745;">
+                        <p style="margin: 0; color: #333;"><strong>Account Info:</strong></p>
+                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Member since: ${new Date(profileData.createdAt || Date.now()).toLocaleDateString()}</p>
+                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Role: ${profileData.role || 'User'}</p>
+                    </div>
+                </div>
+            `;
+
+            showModal('👤 My Profile', profileHTML);
+        }
+
+        // Update user profile
+        async function updateProfile() {
+            try {
+                const name = document.getElementById('profileName').value.trim();
+                const email = document.getElementById('profileEmail').value.trim();
+                const phone = document.getElementById('profilePhone').value.trim();
+                const address = document.getElementById('profileAddress').value.trim();
+
+                if (!name || !email) {
+                    showToast('❌ Name and email are required', 'error');
+                    return;
+                }
+
+                console.log('👤 Updating profile...');
+                const response = await fetch(`${API_URL}/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        email,
+                        phone,
+                        address: address ? { full: address } : null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update local user data
+                    currentUser = { ...currentUser, name, email, phone };
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    
+                    // Update header display
+                    updateHeaderForUser();
+                    
+                    showToast('✅ Profile updated successfully!');
+                    closeModal();
+                } else {
+                    showToast(data.message || '❌ Failed to update profile', 'error');
+                }
+            } catch (error) {
+                console.error('🚨 Update profile error:', error);
+                showToast('Error updating profile', 'error');
+            }
         }
 
         function showOrders() {
             showModernToast('📦 Orders page - Coming soon!', 'info');
         }
 
+        // Modal system for profile and cart
+        function showModal(title, content) {
+            // Remove existing modal if any
+            const existingModal = document.getElementById('customModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.id = 'customModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                box-sizing: border-box;
+            `;
+
+            modal.innerHTML = `
+                <div class="modal-content" style="
+                    background: white;
+                    border-radius: 15px;
+                    max-width: 600px;
+                    width: 100%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                    position: relative;
+                ">
+                    <div class="modal-header" style="
+                        padding: 20px 25px 15px;
+                        border-bottom: 1px solid #eee;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                        color: white;
+                        border-radius: 15px 15px 0 0;
+                    ">
+                        <h2 style="margin: 0; font-size: 20px;">${title}</h2>
+                        <button onclick="closeModal()" style="
+                            background: none;
+                            border: none;
+                            color: white;
+                            font-size: 24px;
+                            cursor: pointer;
+                            padding: 0;
+                            width: 30px;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border-radius: 50%;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='none'">×</button>
+                    </div>
+                    <div class="modal-body" style="padding: 25px;">
+                        ${content}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Close modal with Escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    modal.remove();
+                }, 200);
+            }
+        }
+
         // Logout with confirmation
         async function confirmLogout() {
-            const confirmed = await showConfirmation(`👋 Are you sure you want to logout, ${currentUser.name}?`);
-            if (confirmed) {
-                logout();
+            try {
+                console.log('🚪 confirmLogout called, currentUser:', currentUser?.name);
+                
+                if (!currentUser) {
+                    console.warn('No user logged in, skipping logout');
+                    return;
+                }
+                
+                const confirmed = await showConfirmation(`👋 Are you sure you want to logout, ${currentUser.name}?`);
+                console.log('🚪 User confirmation:', confirmed);
+                
+                if (confirmed) {
+                    console.log('🚪 Calling logout function...');
+                    await logout();
+                }
+            } catch (error) {
+                console.error('🚨 Error in confirmLogout:', error);
+                showModernToast('❌ Error during logout. Please try again.', 'error');
             }
         }
 
         // View cart
-        function viewCart() {
+        async function viewCart() {
             if (!currentUser) {
                 showToast('Please login to view your cart');
                 login();
-            } else {
-                showToast('Cart page - Loading...');
+                return;
             }
+            
+            try {
+                console.log('🛒 Fetching cart data...');
+                const response = await fetch(`${API_URL}/cart`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const cartData = await response.json();
+                    console.log('🛒 Cart data received:', cartData);
+                    showCartModal(cartData);
+                } else {
+                    console.error('❌ Failed to fetch cart');
+                    showToast('Failed to load cart', 'error');
+                }
+            } catch (error) {
+                console.error('🚨 Cart error:', error);
+                showToast('Error loading cart', 'error');
+            }
+        }
+
+        // Show cart in a modal
+        function showCartModal(cartData) {
+            const items = cartData.items || [];
+            let totalAmount = 0;
+            
+            let cartHTML = '<div class="cart-items">';
+            
+            if (items.length === 0) {
+                cartHTML += '<p style="text-align: center; color: #666; padding: 20px;">Your cart is empty</p>';
+            } else {
+                items.forEach(item => {
+                    const product = item.product;
+                    const itemTotal = product.price * item.quantity;
+                    totalAmount += itemTotal;
+                    
+                    // Handle image property - it could be a string or an array
+                    let productImage = '';
+                    if (product.image) {
+                        productImage = product.image;
+                    } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                        productImage = product.images[0];
+                    } else {
+                        productImage = 'https://via.placeholder.com/60x60?text=No+Image';
+                    }
+                    
+                    cartHTML += `
+                        <div class="cart-item" style="display: flex; padding: 15px; border-bottom: 1px solid #eee; align-items: center;">
+                            <img src="${productImage}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;" alt="${product.name}" onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 5px 0; color: #333;">${product.name}</h4>
+                                <p style="margin: 0; color: #666; font-size: 14px;">$${product.price} × ${item.quantity}</p>
+                                <p style="margin: 5px 0 0 0; font-weight: bold; color: #28a745;">$${itemTotal.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <button onclick="updateCartQuantity(${product.id}, ${item.quantity - 1})" 
+                                    style="padding: 5px 10px; background: #6c757d; color: white; border: none; border-radius: 4px; margin-right: 5px;">-</button>
+                                <span style="padding: 0 10px; font-weight: bold;">${item.quantity}</span>
+                                <button onclick="updateCartQuantity(${product.id}, ${item.quantity + 1})" 
+                                    style="padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 4px; margin-left: 5px;">+</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            cartHTML += '</div>';
+            
+            if (items.length > 0) {
+                cartHTML += `
+                    <div style="padding: 20px; border-top: 2px solid #dee2e6; background: #f8f9fa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <strong style="font-size: 18px; color: #333;">Total: $${totalAmount.toFixed(2)}</strong>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="clearCart()" style="flex: 1; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 8px; font-weight: bold;">Clear Cart</button>
+                            <button onclick="proceedToCheckout()" style="flex: 2; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold;">Checkout</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            showModal('🛒 Your Shopping Cart', cartHTML);
+        }
+
+        // Update cart item quantity
+        async function updateCartQuantity(productId, newQuantity) {
+            if (newQuantity <= 0) {
+                await removeFromCart(productId);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/cart/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ quantity: newQuantity })
+                });
+
+                if (response.ok) {
+                    showToast('✅ Cart updated!');
+                    viewCart(); // Refresh cart view
+                } else {
+                    showToast('❌ Failed to update cart', 'error');
+                }
+            } catch (error) {
+                console.error('🚨 Update cart error:', error);
+                showToast('Error updating cart', 'error');
+            }
+        }
+
+        // Remove item from cart
+        async function removeFromCart(productId) {
+            try {
+                const response = await fetch(`${API_URL}/cart/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    showToast('✅ Item removed from cart!');
+                    viewCart(); // Refresh cart view
+                } else {
+                    showToast('❌ Failed to remove item', 'error');
+                }
+            } catch (error) {
+                console.error('🚨 Remove from cart error:', error);
+                showToast('Error removing item', 'error');
+            }
+        }
+
+        // Clear entire cart
+        async function clearCart() {
+            const confirmed = await showConfirmation('Are you sure you want to clear your entire cart?');
+            if (!confirmed) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/cart`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    showToast('✅ Cart cleared!');
+                    closeModal();
+                } else {
+                    showToast('❌ Failed to clear cart', 'error');
+                }
+            } catch (error) {
+                console.error('🚨 Clear cart error:', error);
+                showToast('Error clearing cart', 'error');
+            }
+        }
+
+        // Proceed to checkout (placeholder)
+        function proceedToCheckout() {
+            showToast('🚀 Checkout feature coming soon!', 'info');
         }
 
         // Add to cart with auth check
@@ -2410,14 +2875,22 @@
                 return;
             }
 
+            if (!authToken) {
+                console.error('❌ No auth token found');
+                showToast('Please login again to add items to cart');
+                login();
+                return;
+            }
+
             console.log('📦 Adding product to cart:', productId);
             
             try {
                 const requestBody = { 
-                    productId: parseInt(productId), // Ensure it's a number
+                    productId: parseInt(productId),
                     quantity: 1 
                 };
                 console.log('📡 Cart API request:', requestBody);
+                console.log('📡 Auth token:', authToken ? 'Present' : 'Missing');
 
                 const response = await fetch(`${API_URL}/cart`, {
                     method: 'POST',
@@ -2429,6 +2902,13 @@
                 });
 
                 console.log('📡 Cart API response status:', response.status);
+                
+                if (response.status === 401) {
+                    showToast('❌ Please login again', 'error');
+                    logout();
+                    return;
+                }
+
                 const data = await response.json();
                 console.log('📡 Cart API response data:', data);
 
@@ -2436,11 +2916,11 @@
                     showToast(`✅ ${productName} added to cart!`);
                 } else {
                     console.error('❌ Cart API error:', data);
-                    showToast(data.message || 'Failed to add to cart');
+                    showToast(data.message || 'Failed to add to cart', 'error');
                 }
             } catch (error) {
                 console.error('🚨 Cart error:', error);
-                showToast('Error adding to cart. Please try again.');
+                showToast('Error adding to cart. Please try again.', 'error');
             }
         }
 
