@@ -11,6 +11,11 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Sensitive files
+backend/config/serviceAccountKey.json
+*.json.bak
+*serviceAccountKey*
+
 # Build outputs
 dist/
 build/
