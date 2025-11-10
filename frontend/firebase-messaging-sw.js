@@ -2,18 +2,18 @@
 // This file should be in the root of your web app (same level as index.html)
 
 // Import Firebase scripts for service worker
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
-// Initialize Firebase in service worker
-// REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
+// Initialize Firebase in service worker - Updated with your actual config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+  authDomain: "e-shopeasy.firebaseapp.com",
+  projectId: "e-shopeasy",
+  storageBucket: "e-shopeasy.firebasestorage.app",
+  messagingSenderId: "605116703017",
+  appId: "1:605116703017:web:e9dc9fc29ac5fb82309738",
+  measurementId: "G-3BVZ8CK6HD"
 };
 
 // Initialize Firebase

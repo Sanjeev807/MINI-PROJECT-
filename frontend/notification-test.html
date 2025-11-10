@@ -347,6 +347,33 @@
         let isAuthenticated = false;
         let fcmToken = null;
 
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : type === 'error' ? '#dc3545' : '#17a2b8'};
+                color: ${type === 'warning' ? '#333' : 'white'};
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 10000;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             checkSystemStatus();
@@ -408,7 +435,7 @@
         // Test individual notification
         async function testNotification(type) {
             if (!isAuthenticated) {
-                alert('Please login first to test notifications');
+                showToast('Please login first to test notifications', 'warning');
                 return;
             }
 
@@ -448,7 +475,7 @@
         // Test scheduled notifications
         async function testScheduled(type) {
             if (!isAuthenticated) {
-                alert('Please login first to test notifications');
+                showToast('Please login first to test notifications', 'warning');
                 return;
             }
 
@@ -488,7 +515,7 @@
         // Test all notifications
         async function testAllNotifications() {
             if (!isAuthenticated) {
-                alert('Please login first to test notifications');
+                showToast('Please login first to test notifications', 'warning');
                 return;
             }
 

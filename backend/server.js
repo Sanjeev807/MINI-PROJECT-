@@ -3,23 +3,47 @@ const express = require('express');
 const cors = require('cors');
 const { connectDB, sequelize } = require('./config/database');
 const initializeFirebase = require('./config/firebaseAdmin');
+const logger = require('./utils/logger');
 
 const app = express();
+
+// Trust proxy for accurate IP detection
+app.set('trust proxy', true);
+
+// Request logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  
+  // Override res.end to log when response is finished
+  const originalEnd = res.end;
+  res.end = function(chunk, encoding) {
+    const duration = Date.now() - startTime;
+    logger.request(req, res, duration);
+    originalEnd.call(this, chunk, encoding);
+  };
+  
+  next();
+});
 
 // Connect to PostgreSQL and sync models
 (async () => {
   try {
     await connectDB();
     await sequelize.sync({ alter: true }); // This will update table schemas based on model changes
-    console.log('✅ Database tables synchronized successfully');
+    logger.info('Database tables synchronized successfully');
   } catch (error) {
-    console.error('❌ Error syncing database tables:', error);
+    logger.error('Error syncing database tables:', error);
     process.exit(1);
   }
 })();
 
 // Initialize Firebase Admin SDK for Push Notifications
-initializeFirebase();
+try {
+  initializeFirebase();
+  logger.info('Firebase Admin SDK initialized successfully');
+} catch (error) {
+  logger.error('Failed to initialize Firebase Admin SDK:', error);
+}
 
 // Middleware
 app.use(cors({
@@ -59,7 +83,7 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error(`Unhandled error: ${err.message}`, err);
   res.status(500).json({ 
     message: 'Something went wrong!', 
     error: process.env.NODE_ENV === 'development' ? err.message : undefined 
@@ -69,7 +93,9 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📱 Push Notifications enabled via Firebase Cloud Messaging`);
-  console.log(`🔧 Admin Panel available at http://localhost:${PORT}/admin.html`);
+  logger.info(`🚀 E-commerce server running on port ${PORT}`);
+  logger.info(`📱 Push notifications enabled via Firebase Cloud Messaging`);
+  logger.info(`� Admin panel: http://localhost:${PORT}/admin.html`);
+  logger.info(`🌐 API endpoints: http://localhost:${PORT}/api`);
+  logger.info(`📊 Health check: http://localhost:${PORT}/`);
 });

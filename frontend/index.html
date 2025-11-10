@@ -6,6 +6,11 @@
     <title>E-Shop - Your Ultimate Shopping Destination</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Force cache refresh -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js"></script>
@@ -21,6 +26,89 @@
             font-family: 'Roboto', Arial, sans-serif;
             background: #f1f3f6;
             color: #212121;
+        }
+
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #333;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            max-width: 350px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: #28a745;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .toast.info {
+            background: #17a2b8;
+        }
+
+        .toast-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        /* Enhanced dropdown menu styles */
+        .user-dropdown-menu {
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-dropdown-menu a:hover {
+            background: #f8f9fa;
         }
 
         /* Header */
@@ -1386,6 +1474,9 @@
 
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
+    
+    <!-- Modern Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
 
     <!-- Page Modal -->
     <div id="pageModal" class="page-modal">
@@ -1490,14 +1581,114 @@
         let currentUser = null;
         let authToken = null;
 
-        // Firebase Configuration (REPLACE WITH YOUR ACTUAL CONFIG)
+        // Modern Toast Notification System
+        function showModernToast(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'toast-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.onclick = () => removeToast(toast);
+            
+            toast.innerHTML = `<span>${message}</span>`;
+            toast.appendChild(closeBtn);
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Auto remove
+            setTimeout(() => removeToast(toast), duration);
+            
+            return toast;
+        }
+        
+        function removeToast(toast) {
+            if (toast && toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }
+        
+        // Enhanced showToast function for compatibility
+        function showToast(message, type = 'info') {
+            // Use modern toast system
+            showModernToast(message, type);
+            
+            // Also update legacy toast for compatibility
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.textContent = message;
+                toast.className = `toast ${type} show`;
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Disable console logging in production
+        if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            console.log = console.debug = console.info = console.warn = function() {};
+            // Keep console.error for critical issues
+        }
+
+        // Replace problematic browser dialogs
+        function showConfirmation(message) {
+            return new Promise((resolve) => {
+                const container = document.getElementById('toast-container');
+                
+                const confirmToast = document.createElement('div');
+                confirmToast.className = 'toast warning';
+                confirmToast.style.transform = 'translateX(0)';
+                confirmToast.style.opacity = '1';
+                confirmToast.style.pointerEvents = 'auto';
+                confirmToast.style.maxWidth = '400px';
+                
+                confirmToast.innerHTML = `
+                    <div style="margin-bottom: 15px; font-weight: 500;">${message}</div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="confirm-btn cancel" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button class="confirm-btn ok" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+                    </div>
+                `;
+                
+                container.appendChild(confirmToast);
+                
+                const handleChoice = (choice) => {
+                    removeToast(confirmToast);
+                    resolve(choice);
+                };
+                
+                confirmToast.querySelector('.cancel').onclick = () => handleChoice(false);
+                confirmToast.querySelector('.ok').onclick = () => handleChoice(true);
+                
+                // Auto-cancel after 10 seconds
+                setTimeout(() => {
+                    if (confirmToast.parentNode) {
+                        removeToast(confirmToast);
+                        resolve(false);
+                    }
+                }, 10000);
+            });
+        }
+
+        // Firebase Configuration - Updated with your actual config
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com", 
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+            authDomain: "e-shopeasy.firebaseapp.com",
+            projectId: "e-shopeasy",
+            storageBucket: "e-shopeasy.firebasestorage.app", 
+            messagingSenderId: "605116703017",
+            appId: "1:605116703017:web:e9dc9fc29ac5fb82309738",
+            measurementId: "G-3BVZ8CK6HD"
         };
 
         // Firebase Push Notifications Setup
@@ -1527,7 +1718,7 @@
                     
                     // Get FCM token
                     fcmToken = await getToken(messaging, {
-                        vapidKey: 'YOUR_VAPID_KEY' // You'll get this from Firebase Console
+                        vapidKey: 'BB1oO5HVWQLQVC3qTw0yPC1g--xeXDinC4dYIiXA1etyCClxSFxVjquTedmV3X4oxAKAHKJB7Xo2wPJob0bZRW8'
                     });
                     
                     if (fcmToken) {
@@ -2101,22 +2292,98 @@
 
         // Logout function
         function logout() {
+            // Clear authentication data
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
             authToken = null;
             currentUser = null;
-            location.reload();
+            
+            // Show success notification
+            showModernToast('👋 Successfully logged out! See you again soon.', 'success');
+            
+            // Reload page after a brief delay
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         }
 
         // Show user menu
         function showUserMenu() {
-            const options = [
-                'Profile',
-                'My Orders',
-                'Logout'
-            ];
-            const choice = confirm('Welcome ' + currentUser.name + '!\n\nClick OK to logout');
-            if (choice) {
+            // Create a dropdown menu instead of a popup
+            const existingMenu = document.querySelector('.user-dropdown-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+                return;
+            }
+
+            const menu = document.createElement('div');
+            menu.className = 'user-dropdown-menu';
+            menu.style.cssText = `
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                min-width: 200px;
+                z-index: 1000;
+                overflow: hidden;
+            `;
+
+            menu.innerHTML = `
+                <div style="padding: 15px; border-bottom: 1px solid #eee; background: #f8f9fa;">
+                    <strong>Welcome, ${currentUser.name}!</strong>
+                    <small style="display: block; color: #666; margin-top: 2px;">${currentUser.email}</small>
+                </div>
+                <div style="padding: 8px 0;">
+                    <a href="#" onclick="showProfile(); closeUserMenu();" style="display: block; padding: 12px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0;">
+                        👤 My Profile
+                    </a>
+                    <a href="#" onclick="showOrders(); closeUserMenu();" style="display: block; padding: 12px 15px; text-decoration: none; color: #333; border-bottom: 1px solid #f0f0f0;">
+                        📦 My Orders
+                    </a>
+                    <a href="#" onclick="confirmLogout(); closeUserMenu();" style="display: block; padding: 12px 15px; text-decoration: none; color: #e74c3c;">
+                        🚪 Logout
+                    </a>
+                </div>
+            `;
+
+            // Position the menu relative to the user icon
+            const userIcon = document.querySelector('.user-info');
+            if (userIcon) {
+                userIcon.style.position = 'relative';
+                userIcon.appendChild(menu);
+            }
+
+            // Close menu when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenuOnOutsideClick(e) {
+                    if (!menu.contains(e.target) && !userIcon.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenuOnOutsideClick);
+                    }
+                });
+            }, 100);
+        }
+
+        function closeUserMenu() {
+            const menu = document.querySelector('.user-dropdown-menu');
+            if (menu) menu.remove();
+        }
+
+        function showProfile() {
+            showModernToast('👤 Profile page - Coming soon!', 'info');
+        }
+
+        function showOrders() {
+            showModernToast('📦 Orders page - Coming soon!', 'info');
+        }
+
+        // Logout with confirmation
+        async function confirmLogout() {
+            const confirmed = await showConfirmation(`👋 Are you sure you want to logout, ${currentUser.name}?`);
+            if (confirmed) {
                 logout();
             }
         }

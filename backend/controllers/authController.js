@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -32,6 +33,7 @@ exports.register = async (req, res) => {
     });
 
     if (user) {
+      logger.info(`New user registered: ${user.email}`);
       res.status(201).json({
         _id: user.id,
         name: user.name,
@@ -41,9 +43,11 @@ exports.register = async (req, res) => {
         token: generateToken(user.id)
       });
     } else {
+      logger.warn(`Failed to create user: ${email}`);
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
+    logger.error('Error in user registration:', error);
     res.status(500).json({ message: error.message });
   }
 };

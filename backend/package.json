@@ -4,11 +4,14 @@
   "description": "E-commerce Backend API with Push Notifications",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "NODE_ENV=production node server.js",
+    "dev": "NODE_ENV=development nodemon server.js",
     "dev:fresh": "bash start-server.sh",
+    "prod": "NODE_ENV=production node server.js > logs/app.log 2>&1",
     "seed": "node utils/seed.js",
-    "kill-port": "npx kill-port 5000"
+    "kill-port": "npx kill-port 5000",
+    "logs": "tail -f logs/app.log",
+    "logs:error": "grep ERROR logs/*.log"
   },
   "keywords": [
     "ecommerce",

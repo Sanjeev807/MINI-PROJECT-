@@ -865,10 +865,43 @@
 
         // Logout function
         function logout() {
+            // Show a subtle notification instead of alert
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.innerHTML = '✅ Logged out successfully!';
+            
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // Clean up and redirect
             localStorage.removeItem('adminToken');
             localStorage.removeItem('token');
-            alert('Logged out successfully');
-            window.location.href = 'index.html';
+            
+            setTimeout(() => {
+                notification.remove();
+                window.location.href = 'index.html';
+            }, 1500);
         }
 
         // Mobile menu toggle
