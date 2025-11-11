@@ -34,12 +34,13 @@ export const CartProvider = ({children}) => {
 
   const addToCart = async product => {
     try {
-      const existingItem = cartItems.find(item => item._id === product._id);
+      const productId = product.id || product._id;
+      const existingItem = cartItems.find(item => (item.id || item._id) === productId);
 
       let updatedCart;
       if (existingItem) {
         updatedCart = cartItems.map(item =>
-          item._id === product._id
+          (item.id || item._id) === productId
             ? {...item, quantity: item.quantity + 1}
             : item,
         );
@@ -53,7 +54,7 @@ export const CartProvider = ({children}) => {
       // Sync with backend if user is logged in
       try {
         await cartAPI.addToCart({
-          productId: product._id,
+          productId: productId,
           quantity: 1,
         });
       } catch (error) {
@@ -74,7 +75,7 @@ export const CartProvider = ({children}) => {
       }
 
       const updatedCart = cartItems.map(item =>
-        item._id === productId ? {...item, quantity} : item,
+        (item.id || item._id) === productId ? {...item, quantity} : item,
       );
 
       setCartItems(updatedCart);
@@ -96,7 +97,7 @@ export const CartProvider = ({children}) => {
 
   const removeFromCart = async productId => {
     try {
-      const updatedCart = cartItems.filter(item => item._id !== productId);
+      const updatedCart = cartItems.filter(item => (item.id || item._id) !== productId);
       setCartItems(updatedCart);
       await storage.saveCartData(updatedCart);
 
@@ -135,7 +136,8 @@ export const CartProvider = ({children}) => {
 
   const addToWishlist = async product => {
     try {
-      const existingItem = wishlist.find(item => item._id === product._id);
+      const productId = product.id || product._id;
+      const existingItem = wishlist.find(item => (item.id || item._id) === productId);
       
       if (existingItem) {
         return {success: false, message: 'Already in wishlist'};
@@ -154,7 +156,7 @@ export const CartProvider = ({children}) => {
 
   const removeFromWishlist = async productId => {
     try {
-      const updatedWishlist = wishlist.filter(item => item._id !== productId);
+      const updatedWishlist = wishlist.filter(item => (item.id || item._id) !== productId);
       setWishlist(updatedWishlist);
       await storage.saveWishlistData(updatedWishlist);
 
@@ -166,7 +168,7 @@ export const CartProvider = ({children}) => {
   };
 
   const isInWishlist = productId => {
-    return wishlist.some(item => item._id === productId);
+    return wishlist.some(item => (item.id || item._id) === productId);
   };
 
   const getCartTotal = () => {
