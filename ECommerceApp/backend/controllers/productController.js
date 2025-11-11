@@ -6,7 +6,7 @@ const Product = require('../models/Product');
 // @access  Public
 exports.getProducts = async (req, res) => {
   try {
-    const { category, search, sort, minPrice, maxPrice, page = 1, limit = 20 } = req.query;
+    const { category, search, sort, minPrice, maxPrice, page = 1, limit = 1000 } = req.query;
 
     let where = {};
     let order = [];
