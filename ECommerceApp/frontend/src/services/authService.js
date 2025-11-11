@@ -5,7 +5,17 @@ export const authService = {
   async login(email, password) {
     try {
       const response = await authAPI.login({email, password});
-      const {token, user} = response.data;
+      const data = response.data;
+      
+      // Backend returns: { _id, name, email, phone, role, token }
+      const token = data.token;
+      const user = {
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role
+      };
 
       // Save token and user data
       await storage.saveToken(token);
@@ -23,7 +33,17 @@ export const authService = {
   async register(userData) {
     try {
       const response = await authAPI.register(userData);
-      const {token, user} = response.data;
+      const data = response.data;
+      
+      // Backend returns: { _id, name, email, phone, role, token }
+      const token = data.token;
+      const user = {
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role
+      };
 
       // Save token and user data
       await storage.saveToken(token);

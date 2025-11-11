@@ -42,7 +42,15 @@ const RegisterScreen = () => {
   const navigate = useNavigate();
 
   const handleChange = (field) => (e) => {
-    setFormData({ ...formData, [field]: e.target.value });
+    let value = e.target.value;
+    
+    // Limit phone number to 10 digits
+    if (field === 'phone') {
+      value = value.replace(/\D/g, ''); // Remove non-digits
+      value = value.slice(0, 10); // Limit to 10 digits
+    }
+    
+    setFormData({ ...formData, [field]: value });
   };
 
   const handleRegister = async (e) => {
@@ -166,6 +174,11 @@ const RegisterScreen = () => {
                 margin="normal"
                 variant="outlined"
                 autoComplete="tel"
+                helperText="Enter 10 digit mobile number"
+                inputProps={{
+                  maxLength: 10,
+                  pattern: '[0-9]*',
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
