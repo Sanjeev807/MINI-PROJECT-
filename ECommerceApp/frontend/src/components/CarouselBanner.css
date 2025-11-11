@@ -1,0 +1,229 @@
+.carousel-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 32px;
+  border-radius: 12px;
+  overflow: visible;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-slide {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.carousel-slide::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to top, rgba(139, 152, 216, 0.7) 0%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.carousel-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 1;
+  z-index: 1;
+  filter: none;
+}
+
+.carousel-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  padding: 40px;
+  max-width: 900px;
+}
+
+.carousel-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.carousel-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.carousel-button-primary {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+  color: #222 !important;
+  font-weight: 700 !important;
+  padding: 14px 36px !important;
+  font-size: 17px !important;
+  text-transform: none !important;
+  border-radius: 8px !important;
+  box-shadow: 0 6px 20px rgba(255, 165, 0, 0.45) !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+.carousel-button-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 165, 0, 0.6) !important;
+  background: linear-gradient(135deg, #FFE44D 0%, #FFB800 100%) !important;
+}
+
+.carousel-button-secondary {
+  border: 2px solid white !important;
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  font-weight: 700 !important;
+  padding: 14px 36px !important;
+  font-size: 17px !important;
+  text-transform: none !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.carousel-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
+}
+
+.carousel-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 3px solid white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+.carousel-nav-button:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.carousel-nav-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-nav-left {
+  left: 30px;
+}
+
+.carousel-nav-right {
+  right: 30px;
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 5;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.carousel-dot.active {
+  background: white;
+  transform: scale(1.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.carousel-dot:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 960px) {
+  .carousel-slide {
+    height: 380px;
+  }
+
+  .carousel-title {
+    font-size: 2.75rem;
+  }
+
+  .carousel-content {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .carousel-slide {
+    height: 300px;
+  }
+
+  .carousel-title {
+    font-size: 1.75rem;
+    margin-bottom: 12px;
+  }
+
+  .carousel-content {
+    padding: 20px;
+  }
+
+  .carousel-buttons {
+    gap: 12px;
+  }
+
+  .carousel-button-primary,
+  .carousel-button-secondary {
+    padding: 10px 24px !important;
+    font-size: 14px !important;
+  }
+
+  .carousel-nav-button {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .carousel-nav-left {
+    left: 16px;
+  }
+
+  .carousel-nav-right {
+    right: 16px;
+  }
+}
