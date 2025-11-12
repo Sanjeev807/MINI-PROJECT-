@@ -315,6 +315,60 @@ router.post('/notifications/broadcast', requireAdmin, async (req, res) => {
   }
 });
 
+// Send promotional offer notification
+router.post('/notifications/offer', requireAdmin, async (req, res) => {
+  try {
+    const { title, message, discount, category, type = 'promotion' } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({ error: 'Title and message are required' });
+    }
+
+    // Get all users
+    const users = await User.findAll({
+      attributes: ['id']
+    });
+
+    // Create promotional notifications for all users
+    const notifications = users.map(user => ({
+      userId: user.id,
+      title: `🎉 ${title}`,
+      body: message,
+      type,
+      data: JSON.stringify({ 
+        source: 'admin_promotion', 
+        discount: discount || null,
+        category: category || null
+      }),
+      sentAt: new Date()
+    }));
+
+    await Notification.bulkCreate(notifications);
+
+    console.log(`📢 Promotional notification sent to ${users.length} users: ${title}`);
+
+    res.json({
+      success: true,
+      message: `Promotional notification sent to ${users.length} users!`,
+      recipientCount: users.length,
+      offer: {
+        title,
+        message,
+        discount,
+        category
+      },
+      timestamp: new Date()
+    });
+
+  } catch (error) {
+    console.error('Error sending promotional notification:', error);
+    res.status(500).json({ 
+      error: 'Failed to send promotional notification',
+      details: error.message
+    });
+  }
+});
+
 // Test notification endpoint
 router.post('/notifications/test', requireAdmin, async (req, res) => {
   try {

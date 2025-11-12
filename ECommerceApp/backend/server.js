@@ -38,9 +38,13 @@ app.use((req, res, next) => {
 })();
 
 // Initialize Firebase Admin SDK for Push Notifications
+let firebaseEnabled = false;
 try {
-  initializeFirebase();
-  logger.info('Firebase Admin SDK initialized successfully');
+  firebaseEnabled = initializeFirebase();
+  if (firebaseEnabled) {
+    logger.info('✅ Firebase Admin SDK initialized successfully');
+    logger.info('📱 Push notifications enabled via Firebase Cloud Messaging');
+  }
 } catch (error) {
   logger.error('Failed to initialize Firebase Admin SDK:', error);
 }
@@ -94,8 +98,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   logger.info(`🚀 E-commerce server running on port ${PORT}`);
-  logger.info(`📱 Push notifications enabled via Firebase Cloud Messaging`);
-  logger.info(`� Admin panel: http://localhost:${PORT}/admin.html`);
   logger.info(`🌐 API endpoints: http://localhost:${PORT}/api`);
   logger.info(`📊 Health check: http://localhost:${PORT}/`);
 });

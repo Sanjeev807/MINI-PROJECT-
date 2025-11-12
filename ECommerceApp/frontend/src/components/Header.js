@@ -20,6 +20,7 @@ import {
   AccountCircle,
   ArrowBack,
   Person,
+  Notifications,
 } from '@mui/icons-material';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,7 +36,36 @@ const Header = ({
   const navigate = useNavigate();
   const cartCount = getCartCount();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: '🟢 Order Placed Successfully!',
+  const handleProfileMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleNotificationMenuOpen = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationMenuClose = () => {
+    setNotificationAnchorEl(null);
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;  isRead: false,
+      type: 'order_placed'
+    },
+    {
+      id: 2,
+      title: '🎉 Special Offer: 20% off on Electronics!',
+      body: 'Limited time offer on all electronics. Shop now!',
+      createdAt: new Date(Date.now() - 1000 * 60 * 30),
+      isRead: false,
+      type: 'promotion'
+    }
+  ]);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -120,17 +150,108 @@ const Header = ({
                     border: 'none',
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    border: 'none',
-                  },
-                },
-              }}
-            />
-          </form>
-        </Box>
-
-        <Box sx={{ flexGrow: 1 }} />
-
         {/* Right Section - Login/Profile & Cart */}
+        <Box className="header-icons">
+          {user ? (
+            <>
+              {/* Notifications Icon */}
+              <IconButton 
+                color="inherit" 
+                onClick={handleNotificationMenuOpen}
+                sx={{ mr: 1 }}
+              >
+                <Badge badgeContent={unreadCount} color="error">
+                  <Notifications sx={{ fontSize: 28 }} />
+                </Badge>
+              </IconButton>
+
+              <Menu
+                anchorEl={notificationAnchorEl}
+                open={Boolean(notificationAnchorEl)}
+                onClose={handleNotificationMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                PaperProps={{
+                  sx: {
+                    width: 380,
+                    maxHeight: 500,
+                    overflow: 'auto',
+                  }
+                }}
+              >
+                <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    Notifications
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {unreadCount} unread
+                  </Typography>
+                </Box>
+
+                {notifications.length === 0 ? (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Notifications sx={{ fontSize: 48, color: '#ccc', mb: 1 }} />
+                    <Typography color="text.secondary">
+                      No notifications yet
+                    </Typography>
+                  </Box>
+                ) : (
+                  notifications.map((notification) => (
+                    <MenuItem
+                      key={notification.id}
+                      onClick={handleNotificationMenuClose}
+                      sx={{
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        borderBottom: '1px solid #f0f0f0',
+                        backgroundColor: !notification.isRead ? '#f8f9ff' : 'transparent',
+                        '&:hover': {
+                          backgroundColor: !notification.isRead ? '#eff1ff' : '#f5f5f5',
+                        },
+                        py: 1.5,
+                        px: 2,
+                      }}
+                    >
+                      <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                        {notification.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        {notification.body}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(notification.createdAt).toLocaleString()}
+                      </Typography>
+                    </MenuItem>
+                  ))
+                )}
+
+                <Box sx={{ p: 2, borderTop: '1px solid #e0e0e0', textAlign: 'center' }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      handleNotificationMenuClose();
+                      // Navigate to all notifications page
+                    }}
+                    sx={{ textTransform: 'none', color: '#2874f0' }}
+                  >
+                    View All Notifications
+                  </Button>
+                </Box>
+              </Menu>
+
+              <IconButton color="inherit" onClick={handleProfileMenuOpen}>
+                {user?.avatar ? (
+                  <Avatar src={user.avatar} sx={{ width: 32, height: 32 }} />
+                ) : (
+                  <AccountCircle sx={{ fontSize: 28 }} />
+                )}
+              </IconButton> Login/Profile & Cart */}
         <Box className="header-icons">
           {user ? (
             <>

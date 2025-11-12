@@ -370,6 +370,35 @@
 }
 ```
 
+### 7. Send Promotional Offer (Admin Only)
+- **POST** `/api/admin/notifications/offer`
+- **Headers:** `Authorization: Bearer {admin_token}`
+- **Body:**
+```json
+{
+  "title": "Special Offer: 20% off on Electronics!",
+  "message": "Limited time offer on all electronics. Shop now!",
+  "discount": 20,
+  "category": "Electronics",
+  "type": "promotion"
+}
+```
+- **Response:**
+```json
+{
+  "success": true,
+  "message": "Promotional notification sent to 150 users!",
+  "recipientCount": 150,
+  "offer": {
+    "title": "Special Offer: 20% off on Electronics!",
+    "message": "Limited time offer on all electronics. Shop now!",
+    "discount": 20,
+    "category": "Electronics"
+  },
+  "timestamp": "2023-11-15T10:30:00Z"
+}
+```
+
 ---
 
 ## 👨‍💼 Admin Endpoints (`/api/admin`)

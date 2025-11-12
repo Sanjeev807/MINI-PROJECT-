@@ -63,9 +63,10 @@ exports.createOrder = async (req, res) => {
     // Send push notification
     await sendNotificationToUser(
       req.user._id,
-      'Order Placed Successfully! 🎉',
-      `Your order of ₹${totalAmount} has been placed and will be delivered soon.`,
-      { type: 'order', orderId: order._id.toString() }
+      '🟢 Order Placed Successfully!',
+      `Your order #${order._id.toString().slice(-6)} of ₹${totalAmount.toFixed(2)} has been placed and will be delivered soon.`,
+      { type: 'order_placed', orderId: order._id.toString(), amount: totalAmount },
+      'order_placed'
     );
 
     res.status(201).json(order);
@@ -125,18 +126,45 @@ exports.updateOrderStatus = async (req, res) => {
 
       // Send push notification about status update
       const statusMessages = {
-        confirmed: 'Your order has been confirmed! 📦',
-        processing: 'Your order is being processed 🔄',
-        shipped: 'Your order has been shipped! 🚚',
-        delivered: 'Your order has been delivered! ✅',
-        cancelled: 'Your order has been cancelled ❌'
+        confirmed: {
+          title: '✅ Order Confirmed',
+          body: `Your order #${order._id.toString().slice(-6)} has been confirmed and is being prepared.`,
+          type: 'order_confirmed'
+        },
+        processing: {
+          title: '🔄 Order Processing',
+          body: `Your order #${order._id.toString().slice(-6)} is being processed.`,
+          type: 'order_processing'
+        },
+        shipped: {
+          title: '🟡 Order Shipped!',
+          body: `Great news! Your order #${order._id.toString().slice(-6)} has been shipped and is on its way.`,
+          type: 'order_shipped'
+        },
+        delivered: {
+          title: '🟢 Order Delivered!',
+          body: `Your order #${order._id.toString().slice(-6)} has been delivered successfully. Thank you for shopping with E-Shop!`,
+          type: 'order_delivered'
+        },
+        cancelled: {
+          title: '🔴 Order Cancelled',
+          body: `Your order #${order._id.toString().slice(-6)} has been cancelled. Amount will be refunded within 3-5 business days.`,
+          type: 'order_cancelled'
+        }
+      };
+
+      const notification = statusMessages[status] || {
+        title: 'Order Status Updated',
+        body: `Order #${order._id.toString().slice(-6)} status: ${status}`,
+        type: 'order_update'
       };
 
       await sendNotificationToUser(
         order.user,
-        'Order Status Updated',
-        statusMessages[status] || `Order status: ${status}`,
-        { type: 'order', orderId: order._id.toString() }
+        notification.title,
+        notification.body,
+        { type: notification.type, orderId: order._id.toString(), status },
+        notification.type
       );
 
       res.json(updatedOrder);
@@ -179,6 +207,15 @@ exports.cancelOrder = async (req, res) => {
         { $inc: { stock: item.quantity } }
       );
     }
+
+    // Send cancellation notification
+    await sendNotificationToUser(
+      req.user._id,
+      '🔴 Order Cancelled',
+      `Your order #${order._id.toString().slice(-6)} has been cancelled successfully. Amount will be refunded within 3-5 business days.`,
+      { type: 'order_cancelled', orderId: order._id.toString() },
+      'order_cancelled'
+    );
 
     res.json({ message: 'Order cancelled successfully', order });
   } catch (error) {

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
+const { sendNotificationToUser } = require('../services/notificationService');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -69,6 +70,17 @@ exports.login = async (req, res) => {
         await user.save();
       }
 
+      // Send login notification
+      await sendNotificationToUser(
+        user.id,
+        '🔐 Login Successful',
+        `Welcome back, ${user.name}! You have successfully logged in.`,
+        { type: 'login' },
+        'login_alert'
+      );
+
+      logger.info(`User logged in: ${user.email}`);
+
       res.json({
         _id: user.id,
         name: user.name,
@@ -127,6 +139,15 @@ exports.updateProfile = async (req, res) => {
       }
 
       const updatedUser = await user.save();
+
+      // Send profile update notification
+      await sendNotificationToUser(
+        updatedUser.id,
+        '🧾 Profile Updated Successfully',
+        'Your profile information has been updated.',
+        { type: 'account' },
+        'profile_update'
+      );
 
       res.json({
         _id: updatedUser.id,

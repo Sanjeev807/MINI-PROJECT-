@@ -28,21 +28,26 @@ const initializeFirebase = () => {
         console.log('   4. Generate new private key and download the JSON');
         console.log('   5. Replace backend/config/serviceAccountKey.json with the downloaded file');
         
-        // Initialize with minimal config for development
-        return;
+        // Return false to indicate Firebase is NOT initialized
+        return false;
       }
       
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
       
-      console.log('✅ Firebase Admin SDK initialized for Push Notifications');
-      console.log('📱 Push Notifications enabled via Firebase Cloud Messaging');
+      // Return true to indicate Firebase IS initialized
+      return true;
     }
+    
+    // Already initialized
+    return true;
+    
   } catch (error) {
     console.error('❌ Firebase Admin SDK initialization error:', error.message);
     console.log('⚠️  Push notifications will not work without proper Firebase configuration');
     console.log('📖 Please follow the setup guide in README.md to configure Firebase');
+    return false;
   }
 };
 
