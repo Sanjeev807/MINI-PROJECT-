@@ -28,7 +28,6 @@ import {
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import Header from '../components/Header';
 
 const ProductDetailsScreen = () => {
   const { id } = useParams();
@@ -49,7 +48,8 @@ const ProductDetailsScreen = () => {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/products/${id}`);
+      const response = await api.get(`/api/products/${id}`);
+      console.log('Product fetched:', response.data);
       setProduct(response.data);
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -94,26 +94,20 @@ const ProductDetailsScreen = () => {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
-          <CircularProgress />
-        </Box>
-      </>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (!product) {
     return (
-      <>
-        <Header />
-        <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="h5">Product not found</Typography>
-          <Button variant="contained" onClick={() => navigate('/')} sx={{ mt: 2 }}>
-            Back to Home
-          </Button>
-        </Container>
-      </>
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
+        <Typography variant="h5">Product not found</Typography>
+        <Button variant="contained" onClick={() => navigate('/')} sx={{ mt: 2 }}>
+          Back to Home
+        </Button>
+      </Container>
     );
   }
 
@@ -123,10 +117,8 @@ const ProductDetailsScreen = () => {
   const savings = originalPrice - product.price;
 
   return (
-    <>
-      <Header />
-      <Box sx={{ backgroundColor: '#f1f3f6', minHeight: '100vh', py: 3 }}>
-        <Container maxWidth="lg">
+    <Box sx={{ backgroundColor: '#f1f3f6', minHeight: '100vh', py: 3 }}>
+      <Container maxWidth="lg">
           <Grid container spacing={2}>
             {/* Left Section - Images */}
             <Grid item xs={12} md={5}>
@@ -428,21 +420,20 @@ const ProductDetailsScreen = () => {
             </Grid>
           </Grid>
         </Container>
-      </Box>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </>
-  );
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    );
 };
 
 export default ProductDetailsScreen;

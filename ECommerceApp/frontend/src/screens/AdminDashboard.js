@@ -478,31 +478,39 @@ const AdminDashboard = () => {
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                   <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                    {notifications.slice(0, 5).map((notif) => (
-                      <Box
-                        key={notif.id}
-                        sx={{
-                          p: 2,
-                          mb: 1,
-                          backgroundColor: '#f9f9f9',
-                          borderRadius: 1,
-                          borderLeft: '4px solid #2874f0'
-                        }}
-                      >
-                        <Typography variant="subtitle2" fontWeight="bold">
-                          {notif.title}
+                    {notifications.length === 0 ? (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          No notifications yet
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
-                          {notif.body}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                          <Chip label={notif.type} size="small" variant="outlined" />
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(notif.createdAt).toLocaleString()}
-                          </Typography>
-                        </Box>
                       </Box>
-                    ))}
+                    ) : (
+                      notifications.slice(0, 5).map((notif) => (
+                        <Box
+                          key={notif.id}
+                          sx={{
+                            p: 2,
+                            mb: 1,
+                            backgroundColor: '#f9f9f9',
+                            borderRadius: 1,
+                            borderLeft: '4px solid #2874f0'
+                          }}
+                        >
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {notif.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>
+                            {notif.body}
+                          </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                            <Chip label={notif.type} size="small" variant="outlined" />
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(notif.createdAt).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))
+                    )}
                   </Box>
                 </Paper>
               </Grid>
@@ -658,42 +666,54 @@ const AdminDashboard = () => {
                 🔔 Notification History
               </Typography>
               <Divider sx={{ mb: 3 }} />
-              <Grid container spacing={2}>
-                {notifications.map((notif) => (
-                  <Grid item xs={12} md={6} key={notif.id}>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 2,
-                        borderLeft: '4px solid',
-                        borderLeftColor: 
-                          notif.type === 'promotion' ? '#ff9800' :
-                          notif.type === 'order_placed' ? '#4caf50' :
-                          notif.type === 'login_alert' ? '#2196f3' : '#9e9e9e'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          {notif.title}
+              {notifications.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                  <Notifications sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    No Notifications Yet
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Notifications sent to users will appear here
+                  </Typography>
+                </Box>
+              ) : (
+                <Grid container spacing={2}>
+                  {notifications.map((notif) => (
+                    <Grid item xs={12} md={6} key={notif.id}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 2,
+                          borderLeft: '4px solid',
+                          borderLeftColor: 
+                            notif.type === 'promotion' ? '#ff9800' :
+                            notif.type === 'order_placed' ? '#4caf50' :
+                            notif.type === 'login_alert' ? '#2196f3' : '#9e9e9e'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="subtitle1" fontWeight="bold">
+                            {notif.title}
+                          </Typography>
+                          <Chip label={notif.type} size="small" />
+                        </Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          {notif.body}
                         </Typography>
-                        <Chip label={notif.type} size="small" />
-                      </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {notif.body}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Person sx={{ fontSize: 16, color: 'text.secondary' }} />
-                        <Typography variant="caption" color="text.secondary">
-                          User ID: {notif.userId}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                          {new Date(notif.createdAt).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Person sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="caption" color="text.secondary">
+                            User ID: {notif.userId}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                            {new Date(notif.createdAt).toLocaleString()}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
             </Paper>
           )}
 

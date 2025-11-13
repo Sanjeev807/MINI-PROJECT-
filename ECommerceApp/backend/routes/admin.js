@@ -255,18 +255,16 @@ router.get('/notifications/recent', async (req, res) => {
     const { limit = 20 } = req.query;
 
     const notifications = await Notification.findAll({
-      include: [{
-        model: User,
-        attributes: ['id', 'name', 'email']
-      }],
       order: [['createdAt', 'DESC']],
-      limit: parseInt(limit)
+      limit: parseInt(limit),
+      raw: true
     });
 
+    console.log(`✅ Fetched ${notifications.length} recent notifications`);
     res.json(notifications);
 
   } catch (error) {
-    console.error('Error fetching recent notifications:', error);
+    console.error('❌ Error fetching recent notifications:', error);
     res.status(500).json({ message: 'Error fetching recent notifications', error: error.message });
   }
 });
