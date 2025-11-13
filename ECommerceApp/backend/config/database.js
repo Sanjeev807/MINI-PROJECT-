@@ -1,10 +1,14 @@
 const { Sequelize } = require('sequelize');
+require('dotenv').config();
+
+// Ensure password is always a string
+const dbPassword = process.env.DB_PASSWORD ? String(process.env.DB_PASSWORD) : '';
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
   host: process.env.DB_HOST || 'localhost',
   username: process.env.DB_USER || 'postgres',
-  password: String(process.env.DB_PASSWORD || ''),
+  password: dbPassword,
   database: process.env.DB_NAME || 'ecommerce',
   logging: false, // Disable logging SQL queries
   pool: {

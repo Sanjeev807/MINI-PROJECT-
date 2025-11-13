@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
 const { sendNotificationToUser } = require('../services/notificationService');
+const fcmService = require('../services/fcmService');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -78,6 +79,20 @@ exports.login = async (req, res) => {
         { type: 'login' },
         'login_alert'
       );
+
+      // Send FCM push notification
+      if (user.fcmToken) {
+        try {
+          await fcmService.sendNotification(
+            user.fcmToken,
+            'Login Successful',
+            `Welcome back, ${user.name}!`,
+            { type: 'login', userId: user.id.toString() }
+          );
+        } catch (fcmError) {
+          logger.error('FCM notification failed:', fcmError);
+        }
+      }
 
       logger.info(`User logged in: ${user.email}`);
 

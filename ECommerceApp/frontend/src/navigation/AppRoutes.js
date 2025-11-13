@@ -12,6 +12,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import WishlistScreen from '../screens/WishlistScreen';
+import AdminDashboard from '../screens/AdminDashboard';
 
 // Components
 import Header from '../components/Header';
@@ -28,12 +29,43 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Public Route Component (redirect to home if already logged in)
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
+// Public Route Component (redirect based on user role if already logged in)
 const PublicRoute = ({ children }) => {
   const { user } = useAuth();
   
   if (user) {
+    // Redirect based on role
+    if (user.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
+// Regular User Route Component (block admin from accessing)
+const UserRoute = ({ children }) => {
+  const { user } = useAuth();
+  
+  // If admin tries to access user routes, redirect to admin dashboard
+  if (user && user.role === 'admin') {
+    return <Navigate to="/admin" replace />;
   }
   
   return children;
@@ -64,16 +96,22 @@ const AppRoutes = () => {
           } 
         />
 
-        {/* Home - Public */}
+        {/* Home - Block admin from accessing */}
         <Route 
           path="/" 
-          element={<HomeScreen />} 
+          element={
+            <UserRoute>
+              <HomeScreen />
+            </UserRoute>
+          } 
         />
         <Route 
           path="/product/:id" 
           element={
             <ProtectedRoute>
-              <ProductDetailsScreen />
+              <UserRoute>
+                <ProductDetailsScreen />
+              </UserRoute>
             </ProtectedRoute>
           } 
         />
@@ -81,7 +119,9 @@ const AppRoutes = () => {
           path="/cart" 
           element={
             <ProtectedRoute>
-              <CartScreen />
+              <UserRoute>
+                <CartScreen />
+              </UserRoute>
             </ProtectedRoute>
           } 
         />
@@ -89,7 +129,9 @@ const AppRoutes = () => {
           path="/categories" 
           element={
             <ProtectedRoute>
-              <CategoriesScreen />
+              <UserRoute>
+                <CategoriesScreen />
+              </UserRoute>
             </ProtectedRoute>
           } 
         />
@@ -97,7 +139,9 @@ const AppRoutes = () => {
           path="/profile" 
           element={
             <ProtectedRoute>
-              <ProfileScreen />
+              <UserRoute>
+                <ProfileScreen />
+              </UserRoute>
             </ProtectedRoute>
           } 
         />
@@ -105,7 +149,9 @@ const AppRoutes = () => {
           path="/orders" 
           element={
             <ProtectedRoute>
-              <OrderHistoryScreen />
+              <UserRoute>
+                <OrderHistoryScreen />
+              </UserRoute>
             </ProtectedRoute>
           } 
         />
@@ -113,13 +159,32 @@ const AppRoutes = () => {
           path="/wishlist" 
           element={
             <ProtectedRoute>
-              <WishlistScreen />
+              <UserRoute>
+                <WishlistScreen />
+              </UserRoute>
             </ProtectedRoute>
           } 
         />
 
-        {/* Catch all - redirect to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Admin Routes */}
+        <Route 
+          path="/admin" 
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } 
+        />
+
+        {/* Catch all - redirect based on user role */}
+        <Route 
+          path="*" 
+          element={
+            user && user.role === 'admin' 
+              ? <Navigate to="/admin" replace /> 
+              : <Navigate to="/" replace />
+          } 
+        />
       </Routes>
     </>
   );

@@ -69,6 +69,7 @@ app.use('/api/cart', require('./routes/cart'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api', require('./routes/fcm'));
 
 // Health check
 app.get('/', (req, res) => {
@@ -80,7 +81,8 @@ app.get('/', (req, res) => {
       cart: '/api/cart',
       orders: '/api/orders',
       notifications: '/api/notifications',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      fcm: '/api/send-notification'
     }
   });
 });

@@ -1,7 +1,9 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const { sendNotificationToUser } = require('../services/notificationService');
+const fcmService = require('../services/fcmService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -68,6 +70,25 @@ exports.createOrder = async (req, res) => {
       { type: 'order_placed', orderId: order._id.toString(), amount: totalAmount },
       'order_placed'
     );
+
+    // Send FCM push notification
+    const user = await User.findById(req.user._id);
+    if (user && user.fcmToken) {
+      try {
+        await fcmService.sendNotification(
+          user.fcmToken,
+          'Order Placed Successfully',
+          `Your order #${order._id.toString().slice(-6)} has been placed. Total: ₹${totalAmount.toFixed(2)}`,
+          { 
+            type: 'order_placed', 
+            orderId: order._id.toString(),
+            amount: totalAmount.toString()
+          }
+        );
+      } catch (fcmError) {
+        // Silent fail for FCM errors
+      }
+    }
 
     res.status(201).json(order);
   } catch (error) {
@@ -166,6 +187,25 @@ exports.updateOrderStatus = async (req, res) => {
         { type: notification.type, orderId: order._id.toString(), status },
         notification.type
       );
+
+      // Send FCM push notification
+      const user = await User.findById(order.user);
+      if (user && user.fcmToken) {
+        try {
+          await fcmService.sendNotification(
+            user.fcmToken,
+            notification.title.replace(/[🟢🟡🔴✅🔄]/g, '').trim(),
+            notification.body.replace(/[🟢🟡🔴✅🔄]/g, '').trim(),
+            { 
+              type: notification.type,
+              orderId: order._id.toString(),
+              status
+            }
+          );
+        } catch (fcmError) {
+          // Silent fail for FCM errors
+        }
+      }
 
       res.json(updatedOrder);
     } else {

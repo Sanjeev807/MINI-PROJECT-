@@ -5,21 +5,19 @@ const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Notification = require('../models/Notification');
 const { Op } = require('sequelize');
+const { protect, admin } = require('../middleware/auth');
 
 /**
  * Admin Routes
  * Protected routes for admin dashboard functionality
  */
 
-// Middleware to check admin access (simplified for demo)
-const requireAdmin = (req, res, next) => {
-  // In a real application, you would verify admin JWT token here
-  // For demo purposes, we'll allow access
-  next();
-};
+// All admin routes require authentication and admin role
+router.use(protect);
+router.use(admin);
 
 // Get dashboard statistics
-router.get('/stats', requireAdmin, async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
     // Get total counts
     const totalUsers = await User.count();
@@ -74,7 +72,7 @@ router.get('/stats', requireAdmin, async (req, res) => {
 });
 
 // Get all users with pagination
-router.get('/users', requireAdmin, async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
     const offset = (page - 1) * limit;
@@ -114,7 +112,7 @@ router.get('/users', requireAdmin, async (req, res) => {
 });
 
 // Get user count
-router.get('/users/count', requireAdmin, async (req, res) => {
+router.get('/users/count', async (req, res) => {
   try {
     const count = await User.count();
     res.json({ count });
@@ -125,7 +123,7 @@ router.get('/users/count', requireAdmin, async (req, res) => {
 });
 
 // Get user details by ID
-router.get('/users/:id', requireAdmin, async (req, res) => {
+router.get('/users/:id', async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
       attributes: ['id', 'name', 'email', 'createdAt', 'updatedAt']
@@ -157,7 +155,7 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 });
 
 // Get all products with admin details
-router.get('/products', requireAdmin, async (req, res) => {
+router.get('/products', async (req, res) => {
   try {
     const { page = 1, limit = 10, category, search } = req.query;
     const offset = (page - 1) * limit;
@@ -194,7 +192,7 @@ router.get('/products', requireAdmin, async (req, res) => {
 });
 
 // Get notification statistics
-router.get('/notifications/stats', requireAdmin, async (req, res) => {
+router.get('/notifications/stats', async (req, res) => {
   try {
     const total = await Notification.count();
     
@@ -252,7 +250,7 @@ router.get('/notifications/stats', requireAdmin, async (req, res) => {
 });
 
 // Get recent notifications
-router.get('/notifications/recent', requireAdmin, async (req, res) => {
+router.get('/notifications/recent', async (req, res) => {
   try {
     const { limit = 20 } = req.query;
 
@@ -274,9 +272,9 @@ router.get('/notifications/recent', requireAdmin, async (req, res) => {
 });
 
 // Send bulk notification to all users
-router.post('/notifications/broadcast', requireAdmin, async (req, res) => {
+router.post('/notifications/broadcast', async (req, res) => {
   try {
-    const { title, message, type = 'announcement' } = req.body;
+    const { title, message, type = 'general' } = req.body;
 
     if (!title || !message) {
       return res.status(400).json({ error: 'Title and message are required' });
@@ -292,12 +290,14 @@ router.post('/notifications/broadcast', requireAdmin, async (req, res) => {
       userId: user.id,
       title,
       body: message,
-      type,
+      type: 'general', // Use valid enum value
       data: JSON.stringify({ source: 'admin_broadcast' }),
       sentAt: new Date()
     }));
 
     await Notification.bulkCreate(notifications);
+
+    console.log(`✅ Broadcast notification sent to ${users.length} users: ${title}`);
 
     res.json({
       success: true,
@@ -316,7 +316,7 @@ router.post('/notifications/broadcast', requireAdmin, async (req, res) => {
 });
 
 // Send promotional offer notification
-router.post('/notifications/offer', requireAdmin, async (req, res) => {
+router.post('/notifications/offer', async (req, res) => {
   try {
     const { title, message, discount, category, type = 'promotion' } = req.body;
 
@@ -370,7 +370,7 @@ router.post('/notifications/offer', requireAdmin, async (req, res) => {
 });
 
 // Test notification endpoint
-router.post('/notifications/test', requireAdmin, async (req, res) => {
+router.post('/notifications/test', async (req, res) => {
   try {
     const { userId, title, message, type = 'info' } = req.body;
 
@@ -414,7 +414,7 @@ router.post('/notifications/test', requireAdmin, async (req, res) => {
 });
 
 // Get system health status
-router.get('/system/health', requireAdmin, async (req, res) => {
+router.get('/system/health', async (req, res) => {
   try {
     const health = {
       status: 'healthy',

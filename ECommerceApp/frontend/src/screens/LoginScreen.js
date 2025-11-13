@@ -58,7 +58,12 @@ const LoginScreen = () => {
     setLoading(false);
 
     if (result.success) {
-      navigate('/');
+      // Redirect admin users to admin dashboard
+      if (result.user && result.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } else {
       setError(result.message || 'Login failed');
     }

@@ -42,19 +42,9 @@ const Header = ({
     {
       id: 1,
       title: '🟢 Order Placed Successfully!',
-  const handleProfileMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleNotificationMenuOpen = (event) => {
-    setNotificationAnchorEl(event.currentTarget);
-  };
-
-  const handleNotificationMenuClose = () => {
-    setNotificationAnchorEl(null);
-  };
-
-  const unreadCount = notifications.filter(n => !n.isRead).length;  isRead: false,
+      body: 'Your order has been placed and will be delivered soon.',
+      createdAt: new Date(),
+      isRead: false,
       type: 'order_placed'
     },
     {
@@ -74,6 +64,16 @@ const Header = ({
   const handleProfileMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const handleNotificationMenuOpen = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+  };
+
+  const handleNotificationMenuClose = () => {
+    setNotificationAnchorEl(null);
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleLogout = async () => {
     await logout();
@@ -122,34 +122,46 @@ const Header = ({
           </Box>
         </Box>
 
-        {/* Search Bar */}
-        <Box className="search-container">
-          <form onSubmit={handleSearch} style={{ width: '100%' }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search for products, brands and more..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              size="small"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton type="submit" edge="end" sx={{ color: '#2874f0' }}>
-                      <Search />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-                sx: {
-                  backgroundColor: 'white',
-                  borderRadius: 1,
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: 'none',
+        {/* Search Bar - Hidden for Admin */}
+        {user?.role !== 'admin' && (
+          <Box className="search-container">
+            <form onSubmit={handleSearch} style={{ width: '100%' }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search for products, brands and more..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton type="submit" edge="end" sx={{ color: '#2874f0' }}>
+                        <Search />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    backgroundColor: 'white',
+                    borderRadius: 1,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: 'none',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      border: 'none',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      border: 'none',
+                    },
                   },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    border: 'none',
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                }}
+              />
+            </form>
+          </Box>
+        )}
+
+        <Box sx={{ flexGrow: 1 }} />
+
         {/* Right Section - Login/Profile & Cart */}
         <Box className="header-icons">
           {user ? (
@@ -251,16 +263,6 @@ const Header = ({
                 ) : (
                   <AccountCircle sx={{ fontSize: 28 }} />
                 )}
-              </IconButton> Login/Profile & Cart */}
-        <Box className="header-icons">
-          {user ? (
-            <>
-              <IconButton color="inherit" onClick={handleProfileMenuOpen}>
-                {user?.avatar ? (
-                  <Avatar src={user.avatar} sx={{ width: 32, height: 32 }} />
-                ) : (
-                  <AccountCircle sx={{ fontSize: 28 }} />
-                )}
               </IconButton>
 
               <Menu
@@ -276,40 +278,83 @@ const Header = ({
                   horizontal: 'right',
                 }}
               >
-                <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>
-                  Profile
-                </MenuItem>
-                <MenuItem onClick={() => { navigate('/orders'); handleProfileMenuClose(); }}>
-                  My Orders
-                </MenuItem>
-                <MenuItem onClick={() => { navigate('/wishlist'); handleProfileMenuClose(); }}>
-                  Wishlist
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                {user?.role === 'admin' ? (
+                  // Admin menu - only Dashboard and Logout
+                  <>
+                    <MenuItem 
+                      onClick={() => { navigate('/admin'); handleProfileMenuClose(); }}
+                      sx={{ 
+                        backgroundColor: '#f0f7ff', 
+                        color: '#2874f0',
+                        fontWeight: 'bold',
+                        borderBottom: '1px solid #e0e0e0',
+                        '&:hover': {
+                          backgroundColor: '#e3f2fd'
+                        }
+                      }}
+                    >
+                      🎯 Admin Dashboard
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                  </>
+                ) : (
+                  // Regular user menu
+                  <>
+                    <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>
+                      Profile
+                    </MenuItem>
+                    <MenuItem onClick={() => { navigate('/orders'); handleProfileMenuClose(); }}>
+                      My Orders
+                    </MenuItem>
+                    <MenuItem onClick={() => { navigate('/wishlist'); handleProfileMenuClose(); }}>
+                      Wishlist
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                  </>
+                )}
               </Menu>
             </>
           ) : (
-            <Button 
-              variant="contained" 
-              onClick={() => navigate('/login')}
-              startIcon={<Person />}
-              sx={{ 
-                backgroundColor: 'white',
-                color: '#2874f0',
-                fontWeight: 'bold',
-                textTransform: 'none',
-                px: 3,
-                borderRadius: 1,
-                '&:hover': {
-                  backgroundColor: '#f0f0f0',
-                },
-              }}
-            >
-              Login
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/login')}
+                startIcon={<Person />}
+                sx={{ 
+                  backgroundColor: 'white',
+                  color: '#2874f0',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  px: 3,
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: '#f0f0f0',
+                  },
+                }}
+              >
+                Login
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/login')}
+                sx={{ 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  px: 3,
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5568d3 0%, #63408b 100%)',
+                  },
+                }}
+              >
+                🎯 Admin Login
+              </Button>
+            </Box>
           )}
 
-          {showCart && (
+          {showCart && user?.role !== 'admin' && (
             <IconButton 
               color="inherit" 
               onClick={() => navigate('/cart')}
