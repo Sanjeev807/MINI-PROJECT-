@@ -5,6 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({children}) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -31,6 +32,7 @@ export const AuthProvider = ({children}) => {
       const result = await authService.login(email, password);
       if (result.success) {
         setUser(result.user);
+        setToken(result.token);
         setIsAuthenticated(true);
       }
       return result;
@@ -45,6 +47,7 @@ export const AuthProvider = ({children}) => {
       const result = await authService.register(userData);
       if (result.success) {
         setUser(result.user);
+        setToken(result.token);
         setIsAuthenticated(true);
       }
       return result;
@@ -58,6 +61,7 @@ export const AuthProvider = ({children}) => {
     try {
       await authService.logout();
       setUser(null);
+      setToken(null);
       setIsAuthenticated(false);
       return {success: true};
     } catch (error) {
@@ -72,6 +76,7 @@ export const AuthProvider = ({children}) => {
 
   const value = {
     user,
+    token,
     loading,
     isAuthenticated,
     login,
@@ -90,3 +95,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export { AuthContext };
