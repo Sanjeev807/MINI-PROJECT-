@@ -426,9 +426,28 @@ const ProductDetailsScreen = () => {
           open={snackbar.open}
           autoHideDuration={3000}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ mt: 2 }}
         >
-          <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          <Alert 
+            severity={snackbar.severity} 
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            variant="filled"
+            sx={{ 
+              minWidth: '400px',
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+              '& .MuiAlert-message': {
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                padding: '8px 0'
+              },
+              '& .MuiAlert-icon': {
+                fontSize: '2rem'
+              }
+            }}
+          >
             {snackbar.message}
           </Alert>
         </Snackbar>

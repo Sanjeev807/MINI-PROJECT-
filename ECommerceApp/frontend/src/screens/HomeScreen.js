@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Container, 
   Grid, 
@@ -13,6 +13,7 @@ import {
 import ProductCard from '../components/ProductCard';
 import CarouselBanner from '../components/CarouselBanner';
 import CategoryNav from '../components/CategoryNav';
+import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
 import './HomeScreen.css';
 
@@ -22,9 +23,13 @@ const HomeScreen = () => {
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [priceFilter, setPriceFilter] = useState('all');
+  const { user, token } = useContext(AuthContext);
 
   useEffect(() => {
     fetchProducts();
+    if (user && token) {
+      triggerPromotionalNotification();
+    }
   }, []);
 
   const fetchProducts = async () => {
@@ -78,6 +83,22 @@ const HomeScreen = () => {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerPromotionalNotification = async () => {
+    try {
+      await axios.post(
+        'http://localhost:5000/api/promotions/auto-offer-notification',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+    } catch (err) {
+      // Silently fail - promotional notifications are not critical
     }
   };
 

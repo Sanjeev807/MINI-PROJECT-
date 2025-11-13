@@ -13,6 +13,19 @@ import {
   CardContent,
   Snackbar,
   Alert,
+  Stepper,
+  Step,
+  StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  FormControl,
+  FormLabel,
 } from '@mui/material';
 import {
   Add,
@@ -21,15 +34,32 @@ import {
   ShoppingCart,
   LocalOffer,
   Verified,
+  CheckCircle,
+  LocalShipping,
+  Inventory,
+  Home,
 } from '@mui/icons-material';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
 
 const CartScreen = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { cartItems, updateQuantity, removeFromCart, getCartTotal, getCartCount } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, clearCart, getCartTotal, getCartCount } = useCart();
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
+  const [checkoutDialog, setCheckoutDialog] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState({
+    fullName: '',
+    phone: '',
+    addressLine: '',
+    city: '',
+    state: '',
+    pincode: ''
+  });
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity < 1) return;
@@ -45,14 +75,60 @@ const CartScreen = () => {
     setSnackbar({ open: true, message: `${productName} removed from cart`, severity: 'info' });
   };
 
-  const handlePlaceOrder = () => {
-    setSnackbar({ 
-      open: true, 
-      message: '🎉 Your order has been placed successfully!', 
-      severity: 'success' 
-    });
-    // TODO: Implement actual order placement API call
-    // For now, just show success message
+  const handleOpenCheckout = () => {
+    setCheckoutDialog(true);
+  };
+
+  const handlePlaceOrder = async () => {
+    // Validate address
+    if (!shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.addressLine || 
+        !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode) {
+      setSnackbar({ open: true, message: 'Please fill all address fields', severity: 'warning' });
+      return;
+    }
+
+    try {
+      // Prepare order items
+      const orderItems = cartItems.map(item => ({
+        productId: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.images?.[0] || ''
+      }));
+
+      const orderData = {
+        userId: user.id,
+        items: orderItems,
+        shippingAddress,
+        paymentMethod,
+        totalAmount: totalAmount,
+        status: 'pending',
+        paymentStatus: paymentMethod === 'cod' ? 'pending' : 'completed'
+      };
+
+      const response = await api.post('/api/orders', orderData);
+      
+      setOrderDetails(response.data);
+      setOrderPlaced(true);
+      setCheckoutDialog(false);
+      
+      // Clear cart after successful order
+      clearCart();
+      
+      setSnackbar({ 
+        open: true, 
+        message: '🎉 Your order has been placed successfully!', 
+        severity: 'success' 
+      });
+    } catch (error) {
+      console.error('Order placement error:', error);
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.message || 'Failed to place order. Please try again.', 
+        severity: 'error' 
+      });
+    }
   };
 
   const cartTotal = getCartTotal();
@@ -62,6 +138,177 @@ const CartScreen = () => {
     const originalPrice = item.originalPrice || item.price;
     return acc + ((originalPrice - item.price) * item.quantity);
   }, 0);
+
+  // Order tracking status steps
+  const getOrderSteps = () => {
+    const steps = ['Order Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
+    return steps;
+  };
+
+  const getActiveStep = (status) => {
+    const statusMap = {
+      'pending': 0,
+      'confirmed': 1,
+      'processing': 2,
+      'shipped': 3,
+      'delivered': 4
+    };
+    return statusMap[status] || 0;
+  };
+
+  // If order is placed, show order tracking
+  if (orderPlaced && orderDetails) {
+    return (
+      <Box sx={{ backgroundColor: '#f1f3f6', minHeight: '100vh', py: 3 }}>
+        <Container maxWidth="lg">
+          <Paper sx={{ p: 4 }}>
+            {/* Success Header */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <CheckCircle sx={{ fontSize: 80, color: '#388e3c', mb: 2 }} />
+              <Typography variant="h4" fontWeight="bold" gutterBottom>
+                Order Placed Successfully!
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Order ID: #{orderDetails.id}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Your order will be delivered soon
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Order Tracking */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Track Your Order
+              </Typography>
+              <Stepper activeStep={getActiveStep(orderDetails.status)} alternativeLabel sx={{ mt: 3 }}>
+                {getOrderSteps().map((label, index) => (
+                  <Step key={label}>
+                    <StepLabel
+                      StepIconProps={{
+                        sx: {
+                          '&.Mui-completed': { color: '#388e3c' },
+                          '&.Mui-active': { color: '#2874f0' }
+                        }
+                      }}
+                    >
+                      {label}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+
+              <Box sx={{ mt: 3, p: 2, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
+                <Typography variant="body2" color="primary" fontWeight="bold">
+                  Current Status: {orderDetails.status.toUpperCase()}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {orderDetails.status === 'pending' && 'Your order is waiting for admin confirmation'}
+                  {orderDetails.status === 'confirmed' && 'Your order has been confirmed and will be processed soon'}
+                  {orderDetails.status === 'processing' && 'Your order is being prepared for shipment'}
+                  {orderDetails.status === 'shipped' && 'Your order is on the way!'}
+                  {orderDetails.status === 'delivered' && 'Your order has been delivered. Thank you for shopping!'}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Divider sx={{ my: 3 }} />
+
+            {/* Order Details */}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  Shipping Address
+                </Typography>
+                <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="body2">{orderDetails.shippingAddress?.fullName}</Typography>
+                  <Typography variant="body2">{orderDetails.shippingAddress?.phone}</Typography>
+                  <Typography variant="body2">{orderDetails.shippingAddress?.addressLine}</Typography>
+                  <Typography variant="body2">
+                    {orderDetails.shippingAddress?.city}, {orderDetails.shippingAddress?.state} - {orderDetails.shippingAddress?.pincode}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  Payment Details
+                </Typography>
+                <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="body2">
+                    Payment Method: <strong>{orderDetails.paymentMethod?.toUpperCase()}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Payment Status: <strong style={{ color: orderDetails.paymentStatus === 'completed' ? '#388e3c' : '#ff9800' }}>
+                      {orderDetails.paymentStatus?.toUpperCase()}
+                    </strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 2, fontSize: 18, fontWeight: 'bold' }}>
+                    Total Amount: ₹{Number(orderDetails.totalAmount).toLocaleString()}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+
+            {/* Action Buttons */}
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/orders')}
+                sx={{ px: 4 }}
+              >
+                View All Orders
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setOrderPlaced(false);
+                  setOrderDetails(null);
+                  navigate('/');
+                }}
+                sx={{ backgroundColor: '#2874f0', px: 4 }}
+              >
+                Continue Shopping
+              </Button>
+            </Box>
+          </Paper>
+        </Container>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ mt: 2 }}
+        >
+          <Alert 
+            severity={snackbar.severity} 
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            variant="filled"
+            sx={{ 
+              minWidth: '500px',
+              fontSize: '1.35rem',
+              fontWeight: 'bold',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+              '& .MuiAlert-message': {
+                fontSize: '1.35rem',
+                fontWeight: 'bold',
+                padding: '10px 0'
+              },
+              '& .MuiAlert-icon': {
+                fontSize: '2.5rem'
+              }
+            }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    );
+  }
 
   if (!user) {
     return (
@@ -227,7 +474,7 @@ const CartScreen = () => {
                 <Button
                   variant="contained"
                   size="large"
-                  onClick={handlePlaceOrder}
+                  onClick={handleOpenCheckout}
                   sx={{
                     backgroundColor: '#fb641b',
                     fontWeight: 'bold',
@@ -334,14 +581,133 @@ const CartScreen = () => {
         </Grid>
       </Container>
 
+      {/* Checkout Dialog */}
+      <Dialog open={checkoutDialog} onClose={() => setCheckoutDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight="bold">
+            Shipping & Payment Details
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+              Shipping Address
+            </Typography>
+            <TextField
+              fullWidth
+              label="Full Name"
+              value={shippingAddress.fullName}
+              onChange={(e) => setShippingAddress({ ...shippingAddress, fullName: e.target.value })}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Phone Number"
+              value={shippingAddress.phone}
+              onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Address Line"
+              value={shippingAddress.addressLine}
+              onChange={(e) => setShippingAddress({ ...shippingAddress, addressLine: e.target.value })}
+              multiline
+              rows={2}
+              required
+            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={shippingAddress.city}
+                  onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="State"
+                  value={shippingAddress.state}
+                  onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+                  required
+                />
+              </Grid>
+            </Grid>
+            <TextField
+              fullWidth
+              label="Pincode"
+              value={shippingAddress.pincode}
+              onChange={(e) => setShippingAddress({ ...shippingAddress, pincode: e.target.value })}
+              required
+            />
+
+            <Divider sx={{ my: 2 }} />
+
+            <FormControl component="fieldset">
+              <FormLabel component="legend" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Payment Method
+              </FormLabel>
+              <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                <FormControlLabel value="cod" control={<Radio />} label="Cash on Delivery (COD)" />
+                <FormControlLabel value="upi" control={<Radio />} label="UPI" />
+                <FormControlLabel value="card" control={<Radio />} label="Credit/Debit Card" />
+                <FormControlLabel value="netbanking" control={<Radio />} label="Net Banking" />
+              </RadioGroup>
+            </FormControl>
+
+            <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Order Summary
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body2">Total Amount:</Typography>
+                <Typography variant="body2" fontWeight="bold">₹{totalAmount.toLocaleString()}</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setCheckoutDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handlePlaceOrder}
+            sx={{ backgroundColor: '#fb641b', '&:hover': { backgroundColor: '#e55b16' } }}
+          >
+            Confirm Order
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 2 }}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert 
+          severity={snackbar.severity} 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          variant="filled"
+          sx={{ 
+            minWidth: '500px',
+            fontSize: '1.35rem',
+            fontWeight: 'bold',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+            '& .MuiAlert-message': {
+              fontSize: '1.35rem',
+              fontWeight: 'bold',
+              padding: '10px 0'
+            },
+            '& .MuiAlert-icon': {
+              fontSize: '2.5rem'
+            }
+          }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
