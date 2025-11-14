@@ -38,24 +38,7 @@ const Header = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: '🟢 Order Placed Successfully!',
-      body: 'Your order has been placed and will be delivered soon.',
-      createdAt: new Date(),
-      isRead: false,
-      type: 'order_placed'
-    },
-    {
-      id: 2,
-      title: '🎉 Special Offer: 20% off on Electronics!',
-      body: 'Limited time offer on all electronics. Shop now!',
-      createdAt: new Date(Date.now() - 1000 * 60 * 30),
-      isRead: false,
-      type: 'promotion'
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);

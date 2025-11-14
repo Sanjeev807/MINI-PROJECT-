@@ -75,6 +75,7 @@ exports.createOrder = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (user && user.fcmToken) {
       try {
+        // Order confirmation notification
         await fcmService.sendNotification(
           user.fcmToken,
           'Order Placed Successfully',
@@ -85,6 +86,68 @@ exports.createOrder = async (req, res) => {
             amount: totalAmount.toString()
           }
         );
+
+        // Send promotional notification for ordered products after a short delay
+        setTimeout(async () => {
+          try {
+            // Get product names from the order
+            const productNames = orderItems.map(item => item.name).join(', ');
+            const firstProduct = orderItems[0].name;
+            
+            // Random promotional messages for ordered products
+            const promoMessages = [
+              {
+                title: '🎉 Special Offer on Your Recent Purchase!',
+                body: `Get 20% OFF on ${firstProduct} and similar products! Limited time offer.`
+              },
+              {
+                title: '🔥 Exclusive Deal for You!',
+                body: `Love ${firstProduct}? Get 20% discount on your next purchase of similar items!`
+              },
+              {
+                title: '💰 Save More on Related Products!',
+                body: `Since you bought ${firstProduct}, enjoy 20% OFF on related products. Shop now!`
+              },
+              {
+                title: '⚡ Flash Sale Alert!',
+                body: `20% OFF on products similar to ${firstProduct}. Don't miss out!`
+              },
+              {
+                title: '🎁 Thank You Offer!',
+                body: `As a thank you for your purchase, get 20% OFF on ${firstProduct} category items!`
+              }
+            ];
+
+            const randomPromo = promoMessages[Math.floor(Math.random() * promoMessages.length)];
+
+            await fcmService.sendNotification(
+              user.fcmToken,
+              randomPromo.title,
+              randomPromo.body,
+              { 
+                type: 'product_promotion',
+                products: orderItems.map(item => item.product.toString()),
+                discount: '20'
+              }
+            );
+
+            // Also send to notification database
+            await sendNotificationToUser(
+              req.user._id,
+              randomPromo.title,
+              randomPromo.body,
+              { 
+                type: 'product_promotion',
+                products: orderItems.map(item => item.product.toString()),
+                discount: '20'
+              },
+              'product_promotion'
+            );
+          } catch (promoError) {
+            // Silent fail for promotional notification errors
+          }
+        }, 3000); // 3 second delay after order placement
+
       } catch (fcmError) {
         // Silent fail for FCM errors
       }
