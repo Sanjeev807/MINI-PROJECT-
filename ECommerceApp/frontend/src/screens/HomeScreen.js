@@ -10,14 +10,18 @@ import {
   ButtonGroup,
   Paper
 } from '@mui/material';
+import { useParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import CarouselBanner from '../components/CarouselBanner';
 import CategoryNav from '../components/CategoryNav';
+import PromotionalBanner from '../components/PromotionalBanner';
+import NotificationToast from '../components/NotificationToast';
 import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
 import './HomeScreen.css';
 
 const HomeScreen = () => {
+  const { category } = useParams(); // Get category from URL
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,12 +34,19 @@ const HomeScreen = () => {
     if (user && token) {
       triggerPromotionalNotification();
     }
-  }, []);
+  }, [category]); // Re-fetch when category changes
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/products');
+      let url = 'http://localhost:5000/api/products';
+      
+      // Add category filter if category param exists
+      if (category) {
+        url += `?category=${category}`;
+      }
+      
+      const response = await axios.get(url);
       // API returns { products: [...], page, pages, total }
       const productsData = response.data.products || response.data || [];
       setProducts(Array.isArray(productsData) ? productsData : []);
@@ -144,9 +155,15 @@ const HomeScreen = () => {
 
   return (
     <>
+      {/* Promotional Banner at top */}
+      <PromotionalBanner />
+      
+      {/* Notification Toast at bottom-right */}
+      <NotificationToast />
+      
       <CategoryNav />
       
-      <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <CarouselBanner />
         
         {error && (
@@ -239,7 +256,10 @@ const HomeScreen = () => {
           gap: 2
         }}>
           <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#2c3e50' }}>
-            All Products
+            {category ? `${category.charAt(0).toUpperCase() + category.slice(1)} Products` : 'All Products'}
+            <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+              ({getFilteredAndSortedProducts().length} items)
+            </Typography>
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 1 }}>

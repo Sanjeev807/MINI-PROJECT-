@@ -106,6 +106,14 @@ const AppRoutes = () => {
           } 
         />
         <Route 
+          path="/category/:category" 
+          element={
+            <UserRoute>
+              <HomeScreen />
+            </UserRoute>
+          } 
+        />
+        <Route 
           path="/product/:id" 
           element={
             <ProtectedRoute>

@@ -18,35 +18,35 @@ const CategoryNav = () => {
     { 
       name: 'Electronics', 
       icon: <Laptop />, 
-      path: '/category/electronics',
+      path: '/category/Electronics',
       color: '#667eea',
       image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=100&h=100&fit=crop'
     },
     { 
       name: 'Fashion', 
       icon: <Checkroom />, 
-      path: '/category/fashion',
+      path: '/category/Fashion',
       color: '#f093fb',
       image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=100&h=100&fit=crop'
     },
     { 
       name: 'Home & Living', 
       icon: <Weekend />, 
-      path: '/category/home',
+      path: '/category/Home',
       color: '#4facfe',
       image: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=100&h=100&fit=crop'
     },
     { 
       name: 'Books', 
       icon: <MenuBook />, 
-      path: '/category/books',
+      path: '/category/Books',
       color: '#f5576c',
       image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=100&h=100&fit=crop'
     },
     { 
       name: 'Sports & Fitness', 
       icon: <FitnessCenter />, 
-      path: '/category/sports',
+      path: '/category/Sports',
       color: '#26de81',
       image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=100&h=100&fit=crop'
     },
