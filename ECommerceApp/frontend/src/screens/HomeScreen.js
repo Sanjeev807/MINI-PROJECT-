@@ -15,7 +15,6 @@ import ProductCard from '../components/ProductCard';
 import CarouselBanner from '../components/CarouselBanner';
 import CategoryNav from '../components/CategoryNav';
 import PromotionalBanner from '../components/PromotionalBanner';
-import NotificationToast from '../components/NotificationToast';
 import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
 import './HomeScreen.css';
@@ -157,9 +156,6 @@ const HomeScreen = () => {
     <>
       {/* Promotional Banner at top */}
       <PromotionalBanner />
-      
-      {/* Notification Toast at bottom-right */}
-      <NotificationToast />
       
       <CategoryNav />
       

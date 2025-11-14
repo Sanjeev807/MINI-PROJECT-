@@ -54,6 +54,54 @@ const PromotionalBanner = () => {
       message: 'Buy 1 Get 1 Free on selected items',
       color: '#f5576c',
       bgColor: '#ffe8ec'
+    },
+    {
+      id: 7,
+      icon: <Star sx={{ fontSize: 20 }} />,
+      title: '💎 Premium Collection!',
+      message: 'Exclusive designer wear now available',
+      color: '#9b59b6',
+      bgColor: '#f3e5f5'
+    },
+    {
+      id: 8,
+      icon: <CardGiftcard sx={{ fontSize: 20 }} />,
+      title: '🏃 Fitness Sale!',
+      message: 'Up to 60% off on Sports & Fitness equipment',
+      color: '#e74c3c',
+      bgColor: '#fadbd8'
+    },
+    {
+      id: 9,
+      icon: <Bolt sx={{ fontSize: 20 }} />,
+      title: '📚 Book Lovers Paradise!',
+      message: 'Best-selling books at unbeatable prices',
+      color: '#16a085',
+      bgColor: '#d1f2eb'
+    },
+    {
+      id: 10,
+      icon: <LocalOffer sx={{ fontSize: 20 }} />,
+      title: '🎮 Gamers Alert!',
+      message: 'Hot deals on gaming consoles & accessories',
+      color: '#3498db',
+      bgColor: '#d6eaf8'
+    },
+    {
+      id: 11,
+      icon: <Star sx={{ fontSize: 20 }} />,
+      title: '🌟 Mega Sale!',
+      message: 'Amazing deals across all categories',
+      color: '#f39c12',
+      bgColor: '#fef5e7'
+    },
+    {
+      id: 12,
+      icon: <CardGiftcard sx={{ fontSize: 20 }} />,
+      title: '🚚 Free Delivery!',
+      message: 'Zero shipping charges on all orders today',
+      color: '#27ae60',
+      bgColor: '#d5f4e6'
     }
   ];
 
@@ -63,10 +111,10 @@ const PromotionalBanner = () => {
       showRandomPromotion();
     }, 2000);
 
-    // Show new notification every 20 seconds
+    // Show new notification every 12 seconds
     const interval = setInterval(() => {
       showRandomPromotion();
-    }, 20000);
+    }, 12000);
 
     return () => {
       clearTimeout(initialTimer);
