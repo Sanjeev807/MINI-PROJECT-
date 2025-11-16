@@ -17,8 +17,6 @@ class NotificationScheduler {
    * Initialize all scheduled notification jobs
    */
   static init() {
-    console.log('📅 Initializing notification scheduler...');
-    
     // Run cart reminder check every hour
     cron.schedule('0 * * * *', () => {
       this.checkAbandonedCarts();
@@ -38,8 +36,6 @@ class NotificationScheduler {
     cron.schedule('0 18 * * 0', () => {
       this.sendWeeklyLoyaltyUpdate();
     });
-    
-    console.log('✅ Notification scheduler initialized');
   }
   
   /**
@@ -47,8 +43,6 @@ class NotificationScheduler {
    */
   static async checkAbandonedCarts() {
     try {
-      console.log('🛒 Checking for abandoned carts...');
-      
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
       
@@ -87,8 +81,6 @@ class NotificationScheduler {
           );
         }
       }
-      
-      console.log(`🛒 Processed ${abandonedCarts.length} abandoned carts`);
     } catch (error) {
       console.error('❌ Error checking abandoned carts:', error);
     }
@@ -99,8 +91,6 @@ class NotificationScheduler {
    */
   static async sendDailyDeals() {
     try {
-      console.log('🔥 Sending daily deals...');
-      
       // Get featured products or products with high discounts
       const dealProducts = await Product.findAll({
         where: {
@@ -122,8 +112,6 @@ class NotificationScheduler {
           dealProducts.map(p => p.id)
         );
       }
-      
-      console.log('🔥 Daily deals sent successfully');
     } catch (error) {
       console.error('❌ Error sending daily deals:', error);
     }
@@ -134,8 +122,6 @@ class NotificationScheduler {
    */
   static async sendFeedbackRequests() {
     try {
-      console.log('📝 Sending feedback requests...');
-      
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
       const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
       
@@ -153,8 +139,6 @@ class NotificationScheduler {
           'general'
         );
       }
-      
-      console.log('📝 Feedback requests sent successfully');
     } catch (error) {
       console.error('❌ Error sending feedback requests:', error);
     }
@@ -165,8 +149,6 @@ class NotificationScheduler {
    */
   static async sendWeeklyLoyaltyUpdate() {
     try {
-      console.log('🎁 Sending weekly loyalty updates...');
-      
       const users = await User.findAll({
         where: { 
           fcmToken: { [Op.ne]: null },
@@ -182,8 +164,6 @@ class NotificationScheduler {
           'summary'
         );
       }
-      
-      console.log('🎁 Weekly loyalty updates sent successfully');
     } catch (error) {
       console.error('❌ Error sending weekly loyalty updates:', error);
     }
@@ -194,11 +174,7 @@ class NotificationScheduler {
    */
   static async sendNewArrivalNotifications(product) {
     try {
-      console.log(`📦 Sending new arrival notifications for ${product.name}...`);
-      
       await notificationService.sendNewArrivalNotification(product);
-      
-      console.log('📦 New arrival notifications sent successfully');
     } catch (error) {
       console.error('❌ Error sending new arrival notifications:', error);
     }
@@ -209,8 +185,6 @@ class NotificationScheduler {
    */
   static async sendPriceDropNotifications(productId, oldPrice, newPrice) {
     try {
-      console.log(`💰 Sending price drop notifications for product ${productId}...`);
-      
       // Get users who have this product in wishlist or cart
       const interestedUsers = await User.findAll({
         where: { fcmToken: { [Op.ne]: null } },
@@ -225,8 +199,6 @@ class NotificationScheduler {
         newPrice,
         userIds
       );
-      
-      console.log('💰 Price drop notifications sent successfully');
     } catch (error) {
       console.error('❌ Error sending price drop notifications:', error);
     }
@@ -237,8 +209,6 @@ class NotificationScheduler {
    */
   static async sendBackInStockNotifications(productId) {
     try {
-      console.log(`📦 Sending back in stock notifications for product ${productId}...`);
-      
       // Get users who might be interested (simplified - in real app you'd track wishlist)
       const interestedUsers = await User.findAll({
         where: { fcmToken: { [Op.ne]: null } },
@@ -248,8 +218,6 @@ class NotificationScheduler {
       const userIds = interestedUsers.map(user => user.id);
       
       await notificationService.sendBackInStockNotification(productId, userIds);
-      
-      console.log('📦 Back in stock notifications sent successfully');
     } catch (error) {
       console.error('❌ Error sending back in stock notifications:', error);
     }

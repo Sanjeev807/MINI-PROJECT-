@@ -10,9 +10,6 @@ async function createAdminUser() {
     const existingAdmin = await User.findOne({ where: { email: 'admin@eshop.com' } });
     
     if (existingAdmin) {
-      console.log('✅ Admin user already exists!');
-      console.log('📧 Email: admin@eshop.com');
-      console.log('🔑 Password: admin123');
       return;
     }
 
@@ -31,12 +28,6 @@ async function createAdminUser() {
         country: 'USA'
       }
     });
-
-    console.log('✅ Admin user created successfully!');
-    console.log('📧 Email: admin@eshop.com');
-    console.log('🔑 Password: admin123');
-    console.log('👤 User ID:', admin.id);
-    console.log('\n🎯 You can now login to the admin dashboard at /admin');
     
     process.exit(0);
   } catch (error) {

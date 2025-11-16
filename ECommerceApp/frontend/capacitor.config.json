@@ -1,0 +1,29 @@
+{
+  "appId": "com.myapp.eshop",
+  "appName": "E-Shop",
+  "webDir": "build",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true,
+    "allowNavigation": [
+      "localhost",
+      "127.0.0.1",
+      "192.168.*",
+      "10.0.2.2"
+    ]
+  },
+  "android": {
+    "allowMixedContent": true,
+    "minWebViewVersion": 55
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#2874f0",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "dark"
+    }
+  }
+}

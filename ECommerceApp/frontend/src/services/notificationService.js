@@ -3,7 +3,6 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 export const requestNotificationPermission = async () => {
   try {
-    console.log('Notification permissions - web version');
     // Web notification implementation can be added here
     return true;
   } catch (error) {
@@ -12,9 +11,14 @@ export const requestNotificationPermission = async () => {
   }
 };
 
-export const subscribeToNotifications = (callback) => {
-  console.log('Notification subscription - web version');
-  // Web notification subscription can be added here
+export const subscribeToNotifications = async (userId) => {
+  try {
+    // Web notification subscription can be added here
+    return null;
+  } catch (error) {
+    console.error('Notification subscription error:', error);
+    return null;
+  }
 };
 
 export default {

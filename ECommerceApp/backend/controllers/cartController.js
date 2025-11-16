@@ -106,9 +106,8 @@ exports.addToCart = async (req, res) => {
         },
         'cart'
       );
-      console.log('📱 Cart notification sent successfully');
     } catch (notificationError) {
-      console.log('⚠️ Notification failed:', notificationError.message);
+      // Silent failure for notifications
     }
 
   } catch (error) {

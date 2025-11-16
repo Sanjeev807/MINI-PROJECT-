@@ -17,7 +17,18 @@ import CategoryNav from '../components/CategoryNav';
 import PromotionalBanner from '../components/PromotionalBanner';
 import { AuthContext } from '../contexts/AuthContext';
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
 import './HomeScreen.css';
+
+// Get API URL based on platform
+const getAPIUrl = () => {
+  if (Capacitor.getPlatform() === 'android') {
+    return 'http://10.0.2.2:5000';
+  }
+  return 'http://localhost:5000';
+};
+
+const API_URL = getAPIUrl();
 
 const HomeScreen = () => {
   const { category } = useParams(); // Get category from URL
@@ -38,7 +49,7 @@ const HomeScreen = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      let url = 'http://localhost:5000/api/products';
+      let url = `${API_URL}/api/products`;
       
       // Add category filter if category param exists
       if (category) {
@@ -99,7 +110,7 @@ const HomeScreen = () => {
   const triggerPromotionalNotification = async () => {
     try {
       await axios.post(
-        'http://localhost:5000/api/promotions/auto-offer-notification',
+        `${API_URL}/api/promotions/auto-offer-notification`,
         {},
         {
           headers: {

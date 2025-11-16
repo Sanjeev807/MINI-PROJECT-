@@ -202,7 +202,7 @@ const CartScreen = () => {
 
               <Box sx={{ mt: 3, p: 2, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
                 <Typography variant="body2" color="primary" fontWeight="bold">
-                  Current Status: {orderDetails.status.toUpperCase()}
+                  Current Status: {orderDetails.status?.toUpperCase() || 'PENDING'}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {orderDetails.status === 'pending' && 'Your order is waiting for admin confirmation'}
@@ -238,15 +238,15 @@ const CartScreen = () => {
                 </Typography>
                 <Box sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                   <Typography variant="body2">
-                    Payment Method: <strong>{orderDetails.paymentMethod?.toUpperCase()}</strong>
+                    Payment Method: <strong>{orderDetails.paymentMethod?.toUpperCase() || 'COD'}</strong>
                   </Typography>
                   <Typography variant="body2">
                     Payment Status: <strong style={{ color: orderDetails.paymentStatus === 'completed' ? '#388e3c' : '#ff9800' }}>
-                      {orderDetails.paymentStatus?.toUpperCase()}
+                      {orderDetails.paymentStatus?.toUpperCase() || 'PENDING'}
                     </strong>
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 2, fontSize: 18, fontWeight: 'bold' }}>
-                    Total Amount: ₹{Number(orderDetails.totalAmount).toLocaleString()}
+                    Total Amount: ₹{(orderDetails.totalAmount || 0).toLocaleString()}
                   </Typography>
                 </Box>
               </Grid>
@@ -652,9 +652,6 @@ const CartScreen = () => {
               </FormLabel>
               <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
                 <FormControlLabel value="cod" control={<Radio />} label="Cash on Delivery (COD)" />
-                <FormControlLabel value="upi" control={<Radio />} label="UPI" />
-                <FormControlLabel value="card" control={<Radio />} label="Credit/Debit Card" />
-                <FormControlLabel value="netbanking" control={<Radio />} label="Net Banking" />
               </RadioGroup>
             </FormControl>
 

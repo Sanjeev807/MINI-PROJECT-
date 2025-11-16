@@ -61,15 +61,10 @@ const AdminDashboard = () => {
   
   // Check if user is admin
   useEffect(() => {
-    console.log('Current user:', user); // Debug log
     if (!user) {
-      console.log('No user, redirecting to login');
       navigate('/login');
     } else if (user.role !== 'admin') {
-      console.log('User is not admin, role:', user.role);
       navigate('/');
-    } else {
-      console.log('Admin user verified:', user.email);
     }
   }, [user, navigate]);
 
@@ -112,8 +107,6 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching admin dashboard data...');
-      
       // Fetch each endpoint separately to identify which one fails
       let statsData = null;
       let usersData = { users: [] };
@@ -122,7 +115,6 @@ const AdminDashboard = () => {
 
       try {
         const statsRes = await api.get('/api/admin/stats');
-        console.log('✅ Stats Response:', statsRes.data);
         statsData = statsRes.data;
       } catch (err) {
         console.error('❌ Stats Error:', err.response?.data || err.message);
@@ -130,7 +122,6 @@ const AdminDashboard = () => {
 
       try {
         const usersRes = await api.get('/api/admin/users?limit=10');
-        console.log('✅ Users Response:', usersRes.data);
         usersData = usersRes.data;
       } catch (err) {
         console.error('❌ Users Error:', err.response?.data || err.message);
@@ -138,7 +129,6 @@ const AdminDashboard = () => {
 
       try {
         const productsRes = await api.get('/api/admin/products?limit=10');
-        console.log('✅ Products Response:', productsRes.data);
         productsData = productsRes.data;
       } catch (err) {
         console.error('❌ Products Error:', err.response?.data || err.message);
@@ -146,7 +136,6 @@ const AdminDashboard = () => {
 
       try {
         const notificationsRes = await api.get('/api/admin/notifications/recent?limit=15');
-        console.log('✅ Notifications Response:', notificationsRes.data);
         notificationsData = notificationsRes.data;
       } catch (err) {
         console.error('❌ Notifications Error:', err.response?.data || err.message);
@@ -156,8 +145,6 @@ const AdminDashboard = () => {
       setUsers(usersData.users || []);
       setProducts(productsData.products || []);
       setNotifications(notificationsData || []);
-
-      console.log('📊 Final Stats State:', statsData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setSnackbar({ open: true, message: 'Failed to load dashboard data', severity: 'error' });
@@ -178,17 +165,12 @@ const AdminDashboard = () => {
         ? '/api/admin/notifications/broadcast'
         : '/api/admin/notifications/offer';
 
-      console.log(`📢 Sending ${type} notification to endpoint:`, endpoint);
-      console.log('Notification data:', notificationForm);
-
       const response = await api.post(endpoint, {
         title: notificationForm.title,
         message: notificationForm.message,
         discount: notificationForm.discount || '',
         category: notificationForm.category || ''
       });
-
-      console.log('✅ Notification sent successfully:', response.data);
 
       setSnackbar({ 
         open: true, 

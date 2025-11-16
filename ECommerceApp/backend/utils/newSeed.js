@@ -716,21 +716,8 @@ const sampleProducts = [
 
 const seedDatabase = async () => {
   try {
-    console.log('🔄 Connecting to database...');
     await sequelize.sync({ force: true });
-    console.log('✅ Database synced');
-
-    console.log('🌱 Seeding products...');
     await Product.bulkCreate(sampleProducts);
-    
-    console.log('\n✅ Database seeded successfully!');
-    console.log(`📦 Added ${sampleProducts.length} products:`);
-    console.log(`   💡 Electronics: 10 products`);
-    console.log(`   👗 Fashion: 10 products`);
-    console.log(`   🏡 Home & Living: 10 products`);
-    console.log(`   📚 Books: 10 products`);
-    console.log(`   🏋️ Sports & Fitness: 10 products`);
-    console.log('\n🎉 Your E-Shop is ready with 50 amazing products!\n');
 
     process.exit(0);
   } catch (error) {

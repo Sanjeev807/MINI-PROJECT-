@@ -12,9 +12,7 @@
     "prod": "cross-env NODE_ENV=production node server.js > logs/app.log 2>&1",
     "seed": "node utils/seed.js",
     "create-admin": "node utils/createAdminUser.js",
-    "kill-port": "npx kill-port 5000",
-    "logs": "tail -f logs/app.log",
-    "logs:error": "grep ERROR logs/*.log"
+    "kill-port": "npx kill-port 5000"
   },
   "keywords": [
     "ecommerce",

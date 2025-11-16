@@ -1,0 +1,18 @@
+E-SHOP ANDROID PROJECT LOCATION
+================================
+
+Open this folder in Android Studio:
+e:\MINI PROJECT\ECommerceApp\frontend\android
+
+Steps:
+1. In Android Studio, click "Open"
+2. Browse to the above path
+3. Select the "android" folder
+4. Click OK
+
+Backend Server Status:
+✅ Running on http://localhost:5000
+
+After opening:
+- Wait for Gradle sync to complete (2-5 minutes)
+- Then you can run the app on an emulator or device

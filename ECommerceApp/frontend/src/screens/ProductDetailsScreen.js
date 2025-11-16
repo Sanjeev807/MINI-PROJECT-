@@ -49,7 +49,6 @@ const ProductDetailsScreen = () => {
     try {
       setLoading(true);
       const response = await api.get(`/api/products/${id}`);
-      console.log('Product fetched:', response.data);
       setProduct(response.data);
     } catch (error) {
       console.error('Error fetching product:', error);

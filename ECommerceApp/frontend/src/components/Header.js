@@ -68,7 +68,6 @@ const Header = ({
     e.preventDefault();
     if (searchQuery.trim()) {
       // Navigate to search results or filter products
-      console.log('Searching for:', searchQuery);
     }
   };
 

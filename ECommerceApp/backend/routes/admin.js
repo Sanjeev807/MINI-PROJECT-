@@ -260,7 +260,6 @@ router.get('/notifications/recent', async (req, res) => {
       raw: true
     });
 
-    console.log(`✅ Fetched ${notifications.length} recent notifications`);
     res.json(notifications);
 
   } catch (error) {
@@ -294,8 +293,6 @@ router.post('/notifications/broadcast', async (req, res) => {
     }));
 
     await Notification.bulkCreate(notifications);
-
-    console.log(`✅ Broadcast notification sent to ${users.length} users: ${title}`);
 
     res.json({
       success: true,
@@ -342,8 +339,6 @@ router.post('/notifications/offer', async (req, res) => {
     }));
 
     await Notification.bulkCreate(notifications);
-
-    console.log(`📢 Promotional notification sent to ${users.length} users: ${title}`);
 
     res.json({
       success: true,

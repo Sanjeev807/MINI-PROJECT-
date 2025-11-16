@@ -20,14 +20,6 @@ const initializeFirebase = () => {
         
       } catch (error) {
         // If no valid service account, create a mock one for development
-        console.log('🔧 Using development mode for Firebase (push notifications disabled)');
-        console.log('📝 To enable push notifications:');
-        console.log('   1. Go to Firebase Console: https://console.firebase.google.com');
-        console.log('   2. Create a new project or select existing');
-        console.log('   3. Go to Project Settings > Service Accounts');
-        console.log('   4. Generate new private key and download the JSON');
-        console.log('   5. Replace backend/config/serviceAccountKey.json with the downloaded file');
-        
         // Return false to indicate Firebase is NOT initialized
         return false;
       }
@@ -45,8 +37,6 @@ const initializeFirebase = () => {
     
   } catch (error) {
     console.error('❌ Firebase Admin SDK initialization error:', error.message);
-    console.log('⚠️  Push notifications will not work without proper Firebase configuration');
-    console.log('📖 Please follow the setup guide in README.md to configure Firebase');
     return false;
   }
 };

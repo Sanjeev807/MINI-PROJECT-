@@ -58,7 +58,7 @@ export const CartProvider = ({children}) => {
           quantity: 1,
         });
       } catch (error) {
-        console.log('Backend sync failed, using local cart');
+        // Backend sync failed, using local cart
       }
 
       return {success: true, message: 'Added to cart'};
@@ -85,7 +85,7 @@ export const CartProvider = ({children}) => {
       try {
         await cartAPI.updateCartItem(productId, quantity);
       } catch (error) {
-        console.log('Backend sync failed, using local cart');
+        // Backend sync failed, using local cart
       }
 
       return {success: true};
@@ -105,7 +105,7 @@ export const CartProvider = ({children}) => {
       try {
         await cartAPI.removeFromCart(productId);
       } catch (error) {
-        console.log('Backend sync failed, using local cart');
+        // Backend sync failed, using local cart
       }
 
       return {success: true, message: 'Removed from cart'};
@@ -124,7 +124,7 @@ export const CartProvider = ({children}) => {
       try {
         await cartAPI.clearCart();
       } catch (error) {
-        console.log('Backend sync failed, using local cart');
+        // Backend sync failed, using local cart
       }
 
       return {success: true};

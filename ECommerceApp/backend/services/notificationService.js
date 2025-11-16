@@ -11,7 +11,6 @@ exports.sendNotificationToUser = async (userId, title, body, data = {}, type = '
       data: JSON.stringify(data),
       sentAt: new Date()
     });
-    console.log(`Notification saved for user ${userId}: ${title}`);
     return { success: true, method: 'database_only' };
   } catch (error) {
     console.error('Error sending notification:', error);

@@ -38,13 +38,11 @@ class Logger {
 
   info(message, data = null) {
     const timestamp = this.formatTimestamp();
-    console.log(`[${timestamp}] [INFO] ${message}`);
     this.writeToFile('INFO', message, data);
   }
 
   error(message, error = null) {
     const timestamp = this.formatTimestamp();
-    console.error(`[${timestamp}] [ERROR] ${message}`);
     this.writeToFile('ERROR', message, error ? {
       message: error.message,
       stack: error.stack,
@@ -54,14 +52,12 @@ class Logger {
 
   warn(message, data = null) {
     const timestamp = this.formatTimestamp();
-    console.warn(`[${timestamp}] [WARN] ${message}`);
     this.writeToFile('WARN', message, data);
   }
 
   debug(message, data = null) {
     if (process.env.NODE_ENV === 'development') {
       const timestamp = this.formatTimestamp();
-      console.debug(`[${timestamp}] [DEBUG] ${message}`);
       this.writeToFile('DEBUG', message, data);
     }
   }
@@ -76,7 +72,6 @@ class Logger {
     const contentLength = res.getHeader('Content-Length') || 0; // Use getHeader instead of get
 
     const message = `${ip} "${method} ${url}" ${statusCode} ${contentLength} "${userAgent}" ${duration}ms`;
-    console.log(`[${timestamp}] [REQUEST] ${message}`);
     
     this.writeToFile('REQUEST', message, {
       ip,

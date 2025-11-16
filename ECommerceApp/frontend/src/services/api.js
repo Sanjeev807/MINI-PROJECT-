@@ -1,7 +1,18 @@
 import axios from 'axios';
 import {storage} from '../utils/storage';
+import { Capacitor } from '@capacitor/core';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Detect if running on Android and use appropriate URL
+const getAPIUrl = () => {
+  if (Capacitor.getPlatform() === 'android') {
+    // Android emulator uses 10.0.2.2 to access host machine's localhost
+    // For real device, use your computer's local IP (e.g., 192.168.1.100)
+    return process.env.REACT_APP_API_URL || 'http://10.0.2.2:5000';
+  }
+  return process.env.REACT_APP_API_URL || 'http://localhost:5000';
+};
+
+const API_URL = getAPIUrl();
 
 const api = axios.create({
   baseURL: API_URL,

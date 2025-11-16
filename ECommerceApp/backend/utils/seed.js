@@ -366,16 +366,12 @@ const seedDatabase = async () => {
   try {
     // Sync database and create tables
     await sequelize.sync({ force: true }); // This will drop existing tables
-    console.log('Database synced');
 
     // Insert sample products
     await Product.bulkCreate(sampleProducts.map(product => ({
       ...product,
       specifications: Object.fromEntries(product.specifications || new Map())
     })));
-    
-    console.log('✅ Sample products seeded successfully!');
-    console.log(`📦 Added ${sampleProducts.length} products`);
 
     process.exit(0);
   } catch (error) {

@@ -3,7 +3,6 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { sendNotificationToUser } = require('../services/notificationService');
-const fcmService = require('../services/fcmService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -21,10 +20,10 @@ exports.createOrder = async (req, res) => {
     const orderItems = [];
 
     for (const item of items) {
-      const product = await Product.findById(item.product);
+      const product = await Product.findByPk(item.id || item.productId);
       
       if (!product) {
-        return res.status(404).json({ message: `Product not found: ${item.product}` });
+        return res.status(404).json({ message: `Product not found: ${item.id || item.productId}` });
       }
 
       if (product.stock < item.quantity) {
@@ -34,10 +33,11 @@ exports.createOrder = async (req, res) => {
       }
 
       orderItems.push({
-        product: product._id,
+        productId: product.id,
         name: product.name,
         quantity: item.quantity,
-        price: product.price
+        price: product.price,
+        image: product.images ? product.images[0] : null
       });
 
       totalAmount += product.price * item.quantity;
@@ -48,112 +48,42 @@ exports.createOrder = async (req, res) => {
     }
 
     const order = await Order.create({
-      user: req.user._id,
+      userId: req.user.id,
       items: orderItems,
       shippingAddress,
       paymentMethod,
       totalAmount,
+      status: 'confirmed',
       paymentStatus: paymentMethod === 'cod' ? 'pending' : 'completed'
     });
 
     // Clear cart after order
-    await Cart.findOneAndUpdate(
-      { user: req.user._id },
-      { items: [] }
+    await Cart.update(
+      { items: [] },
+      { where: { userId: req.user.id } }
     );
 
-    // Send push notification
+    // Send order confirmation notification
     await sendNotificationToUser(
-      req.user._id,
-      '🟢 Order Placed Successfully!',
-      `Your order #${order._id.toString().slice(-6)} of ₹${totalAmount.toFixed(2)} has been placed and will be delivered soon.`,
-      { type: 'order_placed', orderId: order._id.toString(), amount: totalAmount },
-      'order_placed'
+      req.user.id,
+      '✅ Order Confirmed!',
+      `Your order #${order.id} of ₹${totalAmount.toLocaleString()} has been confirmed and will be delivered soon.`,
+      { type: 'order_confirmed', orderId: order.id, amount: totalAmount },
+      'order'
     );
 
-    // Send FCM push notification
-    const user = await User.findById(req.user._id);
-    if (user && user.fcmToken) {
-      try {
-        // Order confirmation notification
-        await fcmService.sendNotification(
-          user.fcmToken,
-          'Order Placed Successfully',
-          `Your order #${order._id.toString().slice(-6)} has been placed. Total: ₹${totalAmount.toFixed(2)}`,
-          { 
-            type: 'order_placed', 
-            orderId: order._id.toString(),
-            amount: totalAmount.toString()
-          }
-        );
-
-        // Send promotional notification for ordered products after a short delay
-        setTimeout(async () => {
-          try {
-            // Get product names from the order
-            const productNames = orderItems.map(item => item.name).join(', ');
-            const firstProduct = orderItems[0].name;
-            
-            // Random promotional messages for ordered products
-            const promoMessages = [
-              {
-                title: '🎉 Special Offer on Your Recent Purchase!',
-                body: `Get 20% OFF on ${firstProduct} and similar products! Limited time offer.`
-              },
-              {
-                title: '🔥 Exclusive Deal for You!',
-                body: `Love ${firstProduct}? Get 20% discount on your next purchase of similar items!`
-              },
-              {
-                title: '💰 Save More on Related Products!',
-                body: `Since you bought ${firstProduct}, enjoy 20% OFF on related products. Shop now!`
-              },
-              {
-                title: '⚡ Flash Sale Alert!',
-                body: `20% OFF on products similar to ${firstProduct}. Don't miss out!`
-              },
-              {
-                title: '🎁 Thank You Offer!',
-                body: `As a thank you for your purchase, get 20% OFF on ${firstProduct} category items!`
-              }
-            ];
-
-            const randomPromo = promoMessages[Math.floor(Math.random() * promoMessages.length)];
-
-            await fcmService.sendNotification(
-              user.fcmToken,
-              randomPromo.title,
-              randomPromo.body,
-              { 
-                type: 'product_promotion',
-                products: orderItems.map(item => item.product.toString()),
-                discount: '20'
-              }
-            );
-
-            // Also send to notification database
-            await sendNotificationToUser(
-              req.user._id,
-              randomPromo.title,
-              randomPromo.body,
-              { 
-                type: 'product_promotion',
-                products: orderItems.map(item => item.product.toString()),
-                discount: '20'
-              },
-              'product_promotion'
-            );
-          } catch (promoError) {
-            // Silent fail for promotional notification errors
-          }
-        }, 3000); // 3 second delay after order placement
-
-      } catch (fcmError) {
-        // Silent fail for FCM errors
-      }
-    }
-
-    res.status(201).json(order);
+    res.status(201).json({
+      id: order.id,
+      userId: order.userId,
+      items: order.items,
+      shippingAddress: order.shippingAddress,
+      paymentMethod: order.paymentMethod,
+      totalAmount: order.totalAmount,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      orderDate: order.orderDate,
+      createdAt: order.createdAt
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -164,9 +94,10 @@ exports.createOrder = async (req, res) => {
 // @access  Private
 exports.getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate('items.product')
-      .sort({ orderDate: -1 });
+    const orders = await Order.findAll({
+      where: { userId: req.user.id },
+      order: [['orderDate', 'DESC']]
+    });
 
     res.json(orders);
   } catch (error) {
@@ -179,9 +110,9 @@ exports.getMyOrders = async (req, res) => {
 // @access  Private
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate('items.product');
+    const order = await Order.findByPk(req.params.id);
 
-    if (order && order.user.toString() === req.user._id.toString()) {
+    if (order && order.userId === req.user.id) {
       res.json(order);
     } else {
       res.status(404).json({ message: 'Order not found' });
@@ -197,80 +128,61 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findByPk(req.params.id);
 
     if (order) {
       order.status = status;
       
       if (status === 'delivered') {
-        order.deliveryDate = Date.now();
+        order.deliveryDate = new Date();
       }
 
-      const updatedOrder = await order.save();
+      await order.save();
 
       // Send push notification about status update
       const statusMessages = {
         confirmed: {
           title: '✅ Order Confirmed',
-          body: `Your order #${order._id.toString().slice(-6)} has been confirmed and is being prepared.`,
+          body: `Your order #${order.id} has been confirmed and is being prepared.`,
           type: 'order_confirmed'
         },
         processing: {
           title: '🔄 Order Processing',
-          body: `Your order #${order._id.toString().slice(-6)} is being processed.`,
+          body: `Your order #${order.id} is being processed.`,
           type: 'order_processing'
         },
         shipped: {
-          title: '🟡 Order Shipped!',
-          body: `Great news! Your order #${order._id.toString().slice(-6)} has been shipped and is on its way.`,
+          title: '📦 Order Shipped!',
+          body: `Great news! Your order #${order.id} has been shipped and is on its way.`,
           type: 'order_shipped'
         },
         delivered: {
-          title: '🟢 Order Delivered!',
-          body: `Your order #${order._id.toString().slice(-6)} has been delivered successfully. Thank you for shopping with E-Shop!`,
+          title: '✅ Order Delivered!',
+          body: `Your order #${order.id} has been delivered successfully. Thank you for shopping with E-Shop!`,
           type: 'order_delivered'
         },
         cancelled: {
-          title: '🔴 Order Cancelled',
-          body: `Your order #${order._id.toString().slice(-6)} has been cancelled. Amount will be refunded within 3-5 business days.`,
+          title: '❌ Order Cancelled',
+          body: `Your order #${order.id} has been cancelled.`,
           type: 'order_cancelled'
         }
       };
 
       const notification = statusMessages[status] || {
         title: 'Order Status Updated',
-        body: `Order #${order._id.toString().slice(-6)} status: ${status}`,
+        body: `Order #${order.id} status: ${status}`,
         type: 'order_update'
       };
 
       await sendNotificationToUser(
-        order.user,
+        order.userId,
         notification.title,
         notification.body,
-        { type: notification.type, orderId: order._id.toString(), status },
-        notification.type
+        { type: notification.type, orderId: order.id, status },
+        'order'
       );
 
-      // Send FCM push notification
-      const user = await User.findById(order.user);
-      if (user && user.fcmToken) {
-        try {
-          await fcmService.sendNotification(
-            user.fcmToken,
-            notification.title.replace(/[🟢🟡🔴✅🔄]/g, '').trim(),
-            notification.body.replace(/[🟢🟡🔴✅🔄]/g, '').trim(),
-            { 
-              type: notification.type,
-              orderId: order._id.toString(),
-              status
-            }
-          );
-        } catch (fcmError) {
-          // Silent fail for FCM errors
-        }
-      }
-
-      res.json(updatedOrder);
+      res.json(order);
     } else {
       res.status(404).json({ message: 'Order not found' });
     }
@@ -284,13 +196,13 @@ exports.updateOrderStatus = async (req, res) => {
 // @access  Private
 exports.cancelOrder = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findByPk(req.params.id);
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    if (order.user.toString() !== req.user._id.toString()) {
+    if (order.userId !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -305,19 +217,20 @@ exports.cancelOrder = async (req, res) => {
 
     // Restore stock
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(
-        item.product,
-        { $inc: { stock: item.quantity } }
-      );
+      const product = await Product.findByPk(item.productId);
+      if (product) {
+        product.stock += item.quantity;
+        await product.save();
+      }
     }
 
     // Send cancellation notification
     await sendNotificationToUser(
-      req.user._id,
-      '🔴 Order Cancelled',
-      `Your order #${order._id.toString().slice(-6)} has been cancelled successfully. Amount will be refunded within 3-5 business days.`,
-      { type: 'order_cancelled', orderId: order._id.toString() },
-      'order_cancelled'
+      req.user.id,
+      '❌ Order Cancelled',
+      `Your order #${order.id} has been cancelled successfully.`,
+      { type: 'order_cancelled', orderId: order.id },
+      'order'
     );
 
     res.json({ message: 'Order cancelled successfully', order });
