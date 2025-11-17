@@ -486,27 +486,6 @@ const CartScreen = () => {
                 </Button>
               </Box>
             </Paper>
-
-            {/* Offers Section */}
-            <Paper sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <LocalOffer sx={{ color: '#388e3c' }} />
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Available Offers
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="body2">
-                  • 10% Instant Discount on HDFC Bank Credit Cards
-                </Typography>
-                <Typography variant="body2">
-                  • Get extra 20% cashback on prepaid orders above ₹999
-                </Typography>
-                <Typography variant="body2">
-                  • No Cost EMI available on orders above ₹3,000
-                </Typography>
-              </Box>
-            </Paper>
           </Grid>
 
           {/* Right Section - Price Details */}
@@ -565,18 +544,6 @@ const CartScreen = () => {
                 )}
               </Box>
             </Paper>
-
-            {/* Safe and Secure */}
-            <Card sx={{ mt: 2, backgroundColor: '#fafafa' }}>
-              <CardContent>
-                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                  Safe and Secure Payments
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  100% Payment Protection. Easy Returns. SSL Encrypted
-                </Typography>
-              </CardContent>
-            </Card>
           </Grid>
         </Grid>
       </Container>
