@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - E-Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid white;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: #6366f1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            color: #212121;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+
+        .content-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .content-section h2 {
+            font-size: 28px;
+            color: #6366f1;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f0f0ff 0%, #e8e8ff 100%);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card i {
+            font-size: 48px;
+            color: #6366f1;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            color: #212121;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 16px;
+            color: rgba(255,255,255,0.9);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">E-Shop</a>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">About E-Shop</h1>
+
+        <div class="content-section">
+            <h2>Our Story</h2>
+            <p>Welcome to E-Shop, your number one source for all things shopping. We're dedicated to giving you the very best of products, with a focus on quality, customer service, and uniqueness.</p>
+            <p>Founded in 2020, E-Shop has come a long way from its beginnings. When we first started out, our passion for eco-friendly and customer-centric shopping drove us to start our own business.</p>
+            <p>We now serve customers all over India and are thrilled to be a part of the fair trade wing of the e-commerce industry.</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>10K+</h3>
+                <p>Happy Customers</p>
+            </div>
+            <div class="stat-card">
+                <h3>5000+</h3>
+                <p>Products</p>
+            </div>
+            <div class="stat-card">
+                <h3>50+</h3>
+                <p>Cities Covered</p>
+            </div>
+            <div class="stat-card">
+                <h3>99%</h3>
+                <p>Satisfaction Rate</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Why Choose Us?</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <i class="fas fa-shipping-fast"></i>
+                    <h3>Fast Delivery</h3>
+                    <p>Quick and reliable delivery to your doorstep</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Secure Payment</h3>
+                    <p>100% secure payment methods</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>24/7 Support</h3>
+                    <p>Always here to help you</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Quality Products</h3>
+                    <p>Only the best quality items</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Our Mission</h2>
+            <p>Our mission is to provide an exceptional online shopping experience by offering high-quality products at competitive prices, backed by outstanding customer service. We strive to create a platform where customers can shop with confidence and convenience.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Our Vision</h2>
+            <p>To become India's most trusted and preferred e-commerce platform, known for our commitment to quality, innovation, and customer satisfaction. We envision a future where online shopping is seamless, enjoyable, and accessible to everyone.</p>
+        </div>
+    </div>
+</body>
+</html>

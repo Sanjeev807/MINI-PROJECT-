@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - E-Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid white;
+        }
+
+        .back-btn:hover {
+            background: white;
+            color: #6366f1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            color: #212121;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+
+        .content-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .content-section h2 {
+            font-size: 28px;
+            color: #6366f1;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content-section h3 {
+            font-size: 22px;
+            color: #212121;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .content-section p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .blog-date {
+            color: #8b5cf6;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #f0f0ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">E-Shop</a>
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">E-Shop Blog</h1>
+
+        <div class="content-section">
+            <h2>Latest Articles</h2>
+            
+            <div class="info-box">
+                <h3>Top 10 Tech Gadgets of 2025</h3>
+                <p class="blog-date">Published: October 25, 2025</p>
+                <p>Discover the must-have tech gadgets that are revolutionizing the way we live and work in 2025. From smart home devices to cutting-edge wearables, we've curated the ultimate list.</p>
+            </div>
+            
+            <div class="info-box">
+                <h3>Fashion Trends for the Holiday Season</h3>
+                <p class="blog-date">Published: October 20, 2025</p>
+                <p>Get ready for the festive season with our comprehensive guide to the hottest fashion trends. Learn what's in style and how to rock the perfect holiday look.</p>
+            </div>
+            
+            <div class="info-box">
+                <h3>Home Organization Hacks You Need to Know</h3>
+                <p class="blog-date">Published: October 15, 2025</p>
+                <p>Transform your living space with these clever organization tips and tricks. Maximize storage, reduce clutter, and create a home you'll love.</p>
+            </div>
+            
+            <div class="info-box">
+                <h3>The Ultimate Gift Guide 2025</h3>
+                <p class="blog-date">Published: October 10, 2025</p>
+                <p>Finding the perfect gift has never been easier! Browse our curated selection of thoughtful presents for everyone on your list, from tech enthusiasts to fashion lovers.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
