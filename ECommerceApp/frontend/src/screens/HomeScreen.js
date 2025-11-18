@@ -141,24 +141,6 @@ const HomeScreen = () => {
     }
   };
 
-  // Test function for top notifications
-  const testTopNotifications = () => {
-    const notifications = [
-      { type: 'order', title: '📦 Order Confirmed!', body: 'Your order #12345 has been placed successfully.' },
-      { type: 'promotional', title: '🔥 Flash Sale!', body: 'Get 50% off on all electronics. Limited time offer!' },
-      { type: 'account', title: '🔐 Account Secured', body: 'Your account login was successful.' },
-      { type: 'wishlist', title: '❤️ Back in Stock!', body: 'iPhone 15 Pro is now available in your wishlist.' },
-      { type: 'engagement', title: '🚀 Welcome Back!', body: 'Check out our new arrivals this week.' },
-      { type: 'success', title: '✅ Success!', body: 'Top notifications are working perfectly!' }
-    ];
-
-    notifications.forEach((notif, index) => {
-      setTimeout(() => {
-        notificationEventBus.emit(notif.type, notif.title, notif.body);
-      }, index * 1500); // Stagger notifications by 1.5 seconds
-    });
-  };
-
   const triggerEngagementNotification = async () => {
     try {
       await axios.post(
@@ -225,30 +207,6 @@ const HomeScreen = () => {
     <>
       {/* Promotional Banner at top */}
       <PromotionalBanner />
-      
-      {/* Test Top Notifications Button - TEMPORARY */}
-      {process.env.NODE_ENV === 'development' && (
-        <Container maxWidth="xl" sx={{ py: 1 }}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Button 
-              variant="outlined" 
-              onClick={testTopNotifications}
-              sx={{ 
-                mb: 2,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                  border: 'none'
-                }
-              }}
-            >
-              🔔 Test Top Notifications (Demo)
-            </Button>
-          </Box>
-        </Container>
-      )}
       
       <CategoryNav />
       

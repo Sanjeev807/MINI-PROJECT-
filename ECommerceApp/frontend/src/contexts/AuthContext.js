@@ -76,13 +76,21 @@ export const AuthProvider = ({children}) => {
         setIsAuthenticated(true);
         setFcmSetup(false); // Reset FCM setup to trigger notification setup
         
-        // Show welcome back notification locally
+        // Show welcome back notification locally (immediate)
         setTimeout(() => {
           notificationEventBus.showWelcome(
             `👋 Welcome back, ${result.user.name}!`,
             'Notifications are automatically enabled. You\'ll receive updates for orders, offers, and more!'
           );
-        }, 2000);
+        }, 1000);
+
+        // Show additional info about backend notifications
+        setTimeout(() => {
+          notificationEventBus.showAccount(
+            '🔐 Login Confirmed',
+            'Backend notifications are active. You\'ll receive FCM push alerts automatically.'
+          );
+        }, 4000);
       }
       return result;
     } catch (error) {

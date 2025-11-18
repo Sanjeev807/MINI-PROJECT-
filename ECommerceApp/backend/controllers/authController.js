@@ -82,6 +82,9 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password, fcmToken } = req.body;
+    
+    console.log(`🔐 Login attempt for: ${email}`);
+    console.log(`📱 FCM Token provided: ${fcmToken ? 'Yes' : 'No'}`);
 
     // Check for user email
     const user = await User.findOne({ where: { email } });
@@ -91,6 +94,7 @@ exports.login = async (req, res) => {
       if (fcmToken) {
         user.fcmToken = fcmToken;
         await user.save();
+        console.log(`✅ FCM token updated for user: ${user.email}`);
       }
 
       // Send login notification
@@ -105,12 +109,17 @@ exports.login = async (req, res) => {
       // Send FCM push notification for login
       if (user.fcmToken) {
         try {
+          console.log(`📲 Sending FCM notifications to user: ${user.email}`);
           await fcmService.sendAccountNotification(user.id, user.name, 'login');
           // Also send welcome back engagement notification
           await fcmService.sendEngagementNotification(user.id, user.name, 'welcome_back');
+          console.log(`✅ FCM notifications sent successfully`);
         } catch (fcmError) {
           logger.error('FCM notification failed:', fcmError);
+          console.error('❌ FCM notification failed:', fcmError);
         }
+      } else {
+        console.log('⚠️ No FCM token available, skipping push notifications');
       }
 
       logger.info(`User logged in: ${user.email}`);

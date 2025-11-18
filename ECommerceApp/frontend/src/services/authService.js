@@ -1,10 +1,22 @@
 import {storage} from '../utils/storage';
 import {authAPI} from './api';
+import {requestNotificationPermission} from './notificationService';
 
 export const authService = {
   async login(email, password) {
     try {
-      const response = await authAPI.login({email, password});
+      // Get FCM token before logging in
+      let fcmToken = null;
+      try {
+        const fcmResult = await requestNotificationPermission();
+        if (fcmResult.success && fcmResult.token) {
+          fcmToken = fcmResult.token;
+        }
+      } catch (fcmError) {
+        console.log('FCM token not available, logging in without it');
+      }
+
+      const response = await authAPI.login({email, password, fcmToken});
       const data = response.data;
       
       // Backend returns: { _id, name, email, phone, role, token }
@@ -32,7 +44,18 @@ export const authService = {
 
   async register(userData) {
     try {
-      const response = await authAPI.register(userData);
+      // Get FCM token before registering
+      let fcmToken = null;
+      try {
+        const fcmResult = await requestNotificationPermission();
+        if (fcmResult.success && fcmResult.token) {
+          fcmToken = fcmResult.token;
+        }
+      } catch (fcmError) {
+        console.log('FCM token not available, registering without it');
+      }
+
+      const response = await authAPI.register({...userData, fcmToken});
       const data = response.data;
       
       // Backend returns: { _id, name, email, phone, role, token }
