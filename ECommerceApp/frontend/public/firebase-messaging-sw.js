@@ -22,8 +22,11 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
   
-  const notificationTitle = payload.notification?.title || payload.data?.title || 'E-Shop Notification';
-  const notificationBody = payload.notification?.body || payload.data?.body || 'You have a new notification';
+  // Use EXACT title and body from backend FCM payload
+  const notificationTitle = payload.notification?.title || 'E-Shop Notification';
+  const notificationBody = payload.notification?.body || '';
+  
+  console.log('[SW] Showing notification:', notificationTitle, '-', notificationBody);
   
   const notificationOptions = {
     body: notificationBody,
@@ -31,7 +34,7 @@ messaging.onBackgroundMessage((payload) => {
     badge: '/favicon.ico',
     tag: payload.data?.type || 'ecommerce-notification',
     data: payload.data || {},
-    requireInteraction: true,
+    requireInteraction: false,
     vibrate: [200, 100, 200],
     actions: [
       {
@@ -45,19 +48,6 @@ messaging.onBackgroundMessage((payload) => {
       }
     ]
   };
-
-  // Customize notification based on type
-  if (payload.data?.type === 'order') {
-    notificationOptions.actions = [
-      { action: 'view_order', title: '📦 View Order' },
-      { action: 'close', title: 'Close' }
-    ];
-  } else if (payload.data?.type === 'promotional') {
-    notificationOptions.actions = [
-      { action: 'shop_now', title: '🛍️ Shop Now' },
-      { action: 'close', title: 'Close' }
-    ];
-  }
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });

@@ -16,7 +16,6 @@ import { useParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import CarouselBanner from '../components/CarouselBanner';
 import CategoryNav from '../components/CategoryNav';
-import PromotionalBanner from '../components/PromotionalBanner';
 import { AuthContext } from '../contexts/AuthContext';
 import NotificationSetup from '../components/NotificationSetup';
 import { notificationEventBus } from '../services/notificationEventBus';
@@ -205,9 +204,6 @@ const HomeScreen = () => {
 
   return (
     <>
-      {/* Promotional Banner at top */}
-      <PromotionalBanner />
-      
       <CategoryNav />
       
       {/* Notification Setup Banner */}

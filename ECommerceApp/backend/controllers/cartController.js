@@ -1,6 +1,8 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { sendNotificationToUser } = require('../services/notificationService');
+const fcmService = require('../services/fcmService');
+const User = require('../models/User');
 
 // @desc    Get user cart
 // @route   GET /api/cart
@@ -92,22 +94,27 @@ exports.addToCart = async (req, res) => {
       items: itemsWithProducts
     });
 
-    // Send notification when item is added to cart
+    // Send immediate cart notification via FCM
     try {
-      await sendNotificationToUser(
-        req.user.id,
-        '🛒 Item Added to Cart!',
-        `${product.name} has been added to your cart`,
-        { 
-          productId: productId, 
-          productName: product.name,
-          cartId: cart.id,
-          type: 'cart_add'
-        },
-        'cart'
-      );
+      const user = await User.findByPk(req.user.id);
+      if (user && user.fcmToken) {
+        console.log('📤 Sending cart notification...');
+        await fcmService.sendToUser(
+          req.user.id,
+          '🛒 Added to Cart!',
+          `${product.name} is now in your cart. Complete your purchase before it sells out!`,
+          {
+            type: 'cart',
+            action: 'item_added',
+            productId: productId.toString(),
+            productName: product.name,
+            link: '/cart'
+          }
+        );
+        console.log('✅ Cart notification sent!');
+      }
     } catch (notificationError) {
-      // Silent failure for notifications
+      console.log('Cart notification failed:', notificationError.message);
     }
 
   } catch (error) {

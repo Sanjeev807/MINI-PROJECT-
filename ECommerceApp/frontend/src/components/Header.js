@@ -104,6 +104,9 @@ const Header = ({
           </Box>
         </Box>
 
+        {/* Spacer */}
+        <Box sx={{ flexGrow: 1 }} />
+
         {/* Search Bar - Hidden for Admin */}
         {user?.role !== 'admin' && (
           <Box className="search-container">

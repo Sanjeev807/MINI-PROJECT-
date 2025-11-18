@@ -83,6 +83,18 @@ export const authService = {
 
   async logout() {
     try {
+      // Call backend logout endpoint to send notifications
+      const token = await storage.getToken();
+      if (token) {
+        try {
+          await authAPI.logout();
+          console.log('✅ Backend logout called - notifications sent');
+        } catch (backendError) {
+          console.warn('Backend logout failed, proceeding with local logout:', backendError.message);
+        }
+      }
+      
+      // Clear local storage
       await storage.removeToken();
       await storage.removeUserData();
       await storage.removeCartData();

@@ -1,5 +1,8 @@
 const { Op } = require('sequelize');
+const { sequelize } = require('../config/database');
 const Product = require('../models/Product');
+const fcmService = require('../services/fcmService');
+const User = require('../models/User');
 
 // @desc    Get all products
 // @route   GET /api/products
@@ -80,6 +83,27 @@ exports.getProductById = async (req, res) => {
     const product = await Product.findByPk(req.params.id);
 
     if (product) {
+      // Send engagement notification to random users about popular products
+      try {
+        const randomUsers = await User.findAll({
+          where: { fcmToken: { [Op.ne]: null } },
+          order: sequelize.random(),
+          limit: 3
+        });
+        
+        randomUsers.forEach(async (user) => {
+          setTimeout(async () => {
+            await fcmService.sendEngagementNotification(
+              user.id, 
+              user.name, 
+              'trending_products'
+            );
+          }, Math.random() * 30000); // Random delay 0-30 seconds
+        });
+      } catch (notifError) {
+        console.log('Product engagement notification failed:', notifError.message);
+      }
+      
       res.json(product);
     } else {
       res.status(404).json({ message: 'Product not found' });
@@ -95,6 +119,38 @@ exports.getProductById = async (req, res) => {
 exports.createProduct = async (req, res) => {
   try {
     const product = await Product.create(req.body);
+    
+    // Send new product notifications to all users immediately
+    try {
+      console.log('📤 Sending new product notifications...');
+      const users = await User.findAll({
+        where: { fcmToken: { [Op.ne]: null } },
+        limit: 20 // Notify first 20 users immediately
+      });
+      
+      if (users.length > 0) {
+        const notifications = users.map(user => 
+          fcmService.sendToUser(
+            user.id,
+            '🆕 New Product Alert!',
+            `Check out ${product.name} - just added to ${product.category}! Limited stock available.`,
+            {
+              type: 'new_product',
+              productId: product.id.toString(),
+              productName: product.name,
+              category: product.category,
+              link: `/products/${product.id}`
+            }
+          )
+        );
+        
+        await Promise.all(notifications);
+        console.log(`✅ New product notifications sent to ${users.length} users!`);
+      }
+    } catch (notifError) {
+      console.log('New product notification failed:', notifError.message);
+    }
+    
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -113,6 +169,42 @@ exports.updateProduct = async (req, res) => {
 
     if (updated) {
       const product = await Product.findByPk(req.params.id);
+      
+      // Send notifications for price drops IMMEDIATELY
+      if (req.body.price && req.body.originalPrice && req.body.price < req.body.originalPrice) {
+        try {
+          console.log('📤 Sending price drop notifications...');
+          const users = await User.findAll({
+            where: { fcmToken: { [Op.ne]: null } },
+            limit: 15
+          });
+          
+          const discount = Math.round(((req.body.originalPrice - req.body.price) / req.body.originalPrice) * 100);
+          
+          const notifications = users.map(user =>
+            fcmService.sendToUser(
+              user.id,
+              `💰 Price Drop Alert - ${discount}% OFF!`,
+              `${product.name} is now ₹${req.body.price}! Was ₹${req.body.originalPrice}. Grab it before stock runs out!`,
+              {
+                type: 'price_drop',
+                productId: product.id.toString(),
+                productName: product.name,
+                discount: discount.toString(),
+                oldPrice: req.body.originalPrice.toString(),
+                newPrice: req.body.price.toString(),
+                link: `/products/${product.id}`
+              }
+            )
+          );
+          
+          await Promise.all(notifications);
+          console.log(`✅ Price drop notifications sent to ${users.length} users!`);
+        } catch (notifError) {
+          console.log('Price drop notification failed:', notifError.message);
+        }
+      }
+      
       res.json(product);
     } else {
       res.status(404).json({ message: 'Product not found' });
@@ -137,6 +229,70 @@ exports.deleteProduct = async (req, res) => {
       res.status(404).json({ message: 'Product not found' });
     }
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Send new product announcement notification
+// @route   POST /api/products/:id/announce
+// @access  Private/Admin
+exports.announceNewProduct = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    // Get all users with FCM tokens
+    const users = await User.findAll({
+      where: { fcmToken: { [Op.ne]: null } }
+    });
+    
+    if (users.length === 0) {
+      return res.status(400).json({ message: 'No users to notify' });
+    }
+    
+    // Send new arrival notifications
+    let successCount = 0;
+    let failureCount = 0;
+    
+    for (const user of users) {
+      try {
+        await fcmService.sendToUser(
+          user.id,
+          '🚀 New Arrival Alert!',
+          `Check out ${product.name} - now available in ${product.category}!`,
+          {
+            type: 'new_product',
+            productId: product.id,
+            productName: product.name,
+            category: product.category,
+            link: `/products/${product.id}`
+          }
+        );
+        successCount++;
+      } catch (error) {
+        failureCount++;
+        console.error(`Failed to send notification to user ${user.id}:`, error.message);
+      }
+    }
+    
+    res.json({
+      message: 'New product announcement sent',
+      product: {
+        id: product.id,
+        name: product.name,
+        category: product.category
+      },
+      notifications: {
+        total: users.length,
+        success: successCount,
+        failed: failureCount
+      }
+    });
+  } catch (error) {
+    console.error('Error announcing new product:', error);
     res.status(500).json({ message: error.message });
   }
 };

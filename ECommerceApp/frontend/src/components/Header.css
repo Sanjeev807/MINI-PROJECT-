@@ -37,9 +37,9 @@
 }
 
 .search-container {
-  flex-grow: 1;
-  max-width: 600px;
-  margin: 0 40px;
+  max-width: 1000px;
+  margin: 0;
+  width: 100%;
 }
 
 .header-icons {

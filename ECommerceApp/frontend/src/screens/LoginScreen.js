@@ -21,7 +21,6 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import Loader from '../components/Loader';
-import NotificationWelcomeDialog from '../components/NotificationWelcomeDialog';
 import { validateEmail, validatePassword } from '../utils/helpers';
 import './LoginScreen.css';
 
@@ -31,7 +30,6 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
@@ -60,28 +58,16 @@ const LoginScreen = () => {
     setLoading(false);
 
     if (result.success) {
-      // Check if user should see notification setup
-      const hasSeenNotificationSetup = localStorage.getItem('notificationSetupSeen');
-      const shouldShowNotifications = !hasSeenNotificationSetup && Notification.permission !== 'granted';
-      
-      // Redirect admin users to admin dashboard
+      // Redirect admin users to admin dashboard, others to home
+      // All notifications will come from backend FCM service
       if (result.user && result.user.role === 'admin') {
         navigate('/admin');
       } else {
-        if (shouldShowNotifications) {
-          setShowNotificationDialog(true);
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       }
     } else {
       setError(result.message || 'Login failed');
     }
-  };
-
-  const handleNotificationDialogClose = () => {
-    setShowNotificationDialog(false);
-    navigate('/');
   };
 
   if (loading) {
@@ -190,13 +176,6 @@ const LoginScreen = () => {
           </Paper>
         </Box>
       </Container>
-
-      {/* Notification Welcome Dialog */}
-      <NotificationWelcomeDialog 
-        open={showNotificationDialog}
-        onClose={handleNotificationDialogClose}
-        userName={user?.name || 'User'}
-      />
     </div>
   );
 };

@@ -33,13 +33,8 @@ export const AuthProvider = ({children}) => {
         console.log('✅ FCM setup completed for user');
         setFcmSetup(true);
         
-        // Setup foreground message listener
-        setupForegroundListener((payload) => {
-          console.log('📬 Received notification:', payload.notification?.title);
-          
-          // Use the event bus to show top notification
-          notificationEventBus.showFCMNotification(payload);
-        });
+        // Setup foreground message listener WITHOUT event bus (browser notifications only)
+        setupForegroundListener();
         
       } else if (fcmResult.isNetworkError) {
         console.warn('⚠️ FCM setup postponed: Backend not available, will retry when connected');
@@ -76,29 +71,12 @@ export const AuthProvider = ({children}) => {
         setIsAuthenticated(true);
         setFcmSetup(false); // Reset FCM setup to trigger notification setup
         
-        // Show immediate welcome notification
-        setTimeout(() => {
-          notificationEventBus.showWelcome(
-            `👋 Welcome back, ${result.user.name}!`,
-            `Hi ${result.user.name}, you're successfully logged in. Enjoy your shopping experience!`
-          );
-        }, 500);
-
-        // Show login confirmation notification
-        setTimeout(() => {
-          notificationEventBus.showAccount(
-            '🔐 Login Successful',
-            'Your account is secure. You\'ll receive notifications for orders, offers, and updates.'
-          );
-        }, 2500);
-
-        // Show system capabilities notification  
-        setTimeout(() => {
-          notificationEventBus.showEngagement(
-            '🚀 System Ready',
-            'Push notifications enabled! You\'ll get instant alerts for exclusive deals and order updates.'
-          );
-        }, 5000);
+        // Store user info for better notifications
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        
+        // Backend will send all notifications via FCM
+        console.log('✅ Login successful. Backend will send FCM notifications.');
       }
       return result;
     } catch (error) {
@@ -139,11 +117,12 @@ export const AuthProvider = ({children}) => {
       setIsAuthenticated(false);
       setFcmSetup(false);
       
-      // Show local logout notification
-      notificationEventBus.showSuccess(
-        '👋 Logged out successfully',
-        'Thank you for shopping with E-Shop! Come back soon.'
-      );
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Backend sends all logout notifications via FCM
+      console.log('✅ Logout successful. Backend sent FCM notifications.');
       
       return {success: true};
     } catch (error) {

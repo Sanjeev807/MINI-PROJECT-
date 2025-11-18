@@ -106,35 +106,40 @@ exports.login = async (req, res) => {
         'login_alert'
       );
 
-      // Send FCM push notification for login
+      // Send FCM push notifications for login - ALL IMMEDIATELY
       if (user.fcmToken) {
         try {
-          console.log(`📲 Sending FCM notifications to user: ${user.email}`);
+          console.log(`📲 Sending instant FCM notifications to user: ${user.email}`);
           
-          // Send account login notification
-          await fcmService.sendAccountNotification(user.id, user.name, 'login');
+          // Send all notifications immediately (no delays)
+          const notifications = [
+            fcmService.sendToUser(
+              user.id,
+              `🎉 Welcome Back, ${user.name}!`,
+              'Great to see you again! Your favorite deals are waiting for you.',
+              { type: 'account', action: 'login', link: '/' }
+            ),
+            fcmService.sendToUser(
+              user.id,
+              '✅ Login Successful',
+              'You\'re all set! Push notifications are enabled for exclusive deals and updates.',
+              { type: 'account', action: 'login_confirmed', link: '/' }
+            ),
+            fcmService.sendToUser(
+              user.id,
+              `🚀 Hey ${user.name}! Ready to Shop?`,
+              'Discover new arrivals, exclusive deals, and personalized recommendations just for you!',
+              { type: 'engagement', category: 'welcome_system', link: '/products' }
+            )
+          ];
           
-          // Send personalized welcome back notification
-          await fcmService.sendEngagementNotification(user.id, user.name, 'welcome_back');
+          // Wait for all to complete
+          await Promise.all(notifications);
           
-          // Send system status notification
-          setTimeout(async () => {
-            try {
-              await fcmService.sendToUser(
-                user.id,
-                `🎯 Hey ${user.name}! Ready to Shop?`,
-                'Discover new arrivals, exclusive deals, and personalized recommendations just for you!',
-                { type: 'engagement', category: 'welcome_system' }
-              );
-            } catch (delayedError) {
-              console.error('Delayed notification failed:', delayedError);
-            }
-          }, 3000);
-          
-          console.log(`✅ FCM notifications sent successfully`);
+          console.log(`✅ All ${notifications.length} FCM notifications sent successfully!`);
         } catch (fcmError) {
           logger.error('FCM notification failed:', fcmError);
-          console.error('❌ FCM notification failed:', fcmError);
+          console.error('❌ FCM notification failed:', fcmError.message);
         }
       } else {
         console.log('⚠️ No FCM token available, skipping push notifications');
@@ -258,7 +263,7 @@ exports.updateFCMToken = async (req, res) => {
   }
 };
 
-// @desc    Logout user (clear FCM token)
+// @desc    Logout user (send notifications and clear FCM token)
 // @route   POST /api/auth/logout
 // @access  Private
 exports.logout = async (req, res) => {
@@ -266,7 +271,37 @@ exports.logout = async (req, res) => {
     const user = await User.findByPk(req.user.id);
     
     if (user) {
-      // Clear FCM token on logout for security
+      const userName = user.name;
+      const userToken = user.fcmToken;
+      
+      // Send logout notifications BEFORE clearing token
+      if (userToken) {
+        try {
+          console.log(`📲 Sending logout FCM notifications to user: ${user.email}`);
+          
+          const notifications = [
+            fcmService.sendToUser(
+              user.id,
+              `👋 See You Soon, ${userName}!`,
+              'Thanks for shopping with E-Shop! Your cart is saved for next time.',
+              { type: 'account', action: 'logout', link: '/' }
+            ),
+            fcmService.sendToUser(
+              user.id,
+              '🎁 Don\'t Miss Out!',
+              'New deals arrive daily. Log back in anytime to catch exclusive offers!',
+              { type: 'engagement', action: 'comeback', link: '/login' }
+            )
+          ];
+          
+          await Promise.all(notifications);
+          console.log(`✅ Logout notifications sent successfully!`);
+        } catch (fcmError) {
+          console.error('❌ Logout FCM notification failed:', fcmError.message);
+        }
+      }
+      
+      // Clear FCM token after sending notifications
       user.fcmToken = null;
       await user.save();
       

@@ -21,15 +21,25 @@ class FCMService {
         return { success: false, error: 'Firebase not initialized' };
       }
 
+      console.log('📤 Preparing FCM notification...');
+      console.log('  ├─ To token:', token.substring(0, 20) + '...');
+      console.log('  ├─ Title:', title);
+      console.log('  ├─ Message:', message);
+      console.log('  └─ Data:', JSON.stringify(data));
+
+      // Convert all data values to strings (FCM requirement)
+      const stringData = {};
+      Object.keys(data).forEach(key => {
+        stringData[key] = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+      });
+      stringData.timestamp = new Date().toISOString();
+
       const payload = {
         notification: {
           title,
           body: message
         },
-        data: {
-          ...data,
-          timestamp: new Date().toISOString()
-        },
+        data: stringData,
         token,
         webpush: {
           notification: {
@@ -38,7 +48,7 @@ class FCMService {
             icon: '/favicon.ico',
             badge: '/favicon.ico',
             tag: 'ecommerce-notification',
-            requireInteraction: true
+            requireInteraction: false
           },
           fcmOptions: {
             link: data.link || '/'
@@ -48,6 +58,7 @@ class FCMService {
 
       const response = await admin.messaging().send(payload);
       logger.info(`✅ FCM notification sent successfully: ${response}`);
+      console.log(`✅ FCM sent! Message ID: ${response}`);
       
       return {
         success: true,
@@ -55,8 +66,11 @@ class FCMService {
       };
     } catch (error) {
       logger.error('❌ Error sending FCM notification:', error.message);
+      console.error('❌ FCM Error:', error.message);
+      console.error('   Error code:', error.code);
       if (error.code === 'messaging/invalid-registration-token' ||
           error.code === 'messaging/registration-token-not-registered') {
+        console.error('   Token is invalid or expired!');
         throw new Error('Invalid or expired FCM token');
       }
       throw error;

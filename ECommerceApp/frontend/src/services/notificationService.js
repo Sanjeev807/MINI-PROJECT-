@@ -189,29 +189,57 @@ export const setupForegroundListener = (callback) => {
     return;
   }
 
+  console.log('🎯 Setting up FCM foreground listener...');
+
   onMessage(messaging, (payload) => {
-    console.log('📬 Foreground message received:', payload);
+    console.log('📬 FCM Foreground message received:', payload);
+    console.log('📋 Notification:', payload.notification);
+    console.log('📋 Data:', payload.data);
     
-    // Show browser notification
+    // Use EXACT title and body from FCM backend
+    const notificationTitle = payload.notification?.title || 'E-Shop Notification';
+    const notificationBody = payload.notification?.body || '';
+    
+    console.log('🔔 Creating notification:', notificationTitle);
+    console.log('   Body:', notificationBody);
+    
+    // Show browser notification with EXACT backend message
     if (Notification.permission === 'granted') {
-      const notificationTitle = payload.notification?.title || 'New Notification';
       const notificationOptions = {
-        body: payload.notification?.body || '',
+        body: notificationBody,
         icon: '/favicon.ico',
         badge: '/favicon.ico',
         tag: payload.data?.type || 'notification',
         data: payload.data,
-        requireInteraction: true
+        requireInteraction: false,
+        silent: false
       };
 
-      new Notification(notificationTitle, notificationOptions);
+      console.log('✅ Showing browser notification...');
+      const notification = new Notification(notificationTitle, notificationOptions);
+      
+      notification.onclick = () => {
+        console.log('🖱️ Notification clicked');
+        window.focus();
+        notification.close();
+        
+        // Navigate to link if provided
+        if (payload.data?.link) {
+          window.location.href = payload.data.link;
+        }
+      };
+    } else {
+      console.warn('⚠️ Notification permission not granted, permission:', Notification.permission);
     }
     
-    // Call custom callback if provided
+    // Call custom callback if provided (for TopNotificationToast)
     if (callback) {
+      console.log('📞 Calling custom callback for in-app notification...');
       callback(payload);
     }
   });
+  
+  console.log('✅ FCM foreground listener setup complete');
 };
 
 // Send test notification
