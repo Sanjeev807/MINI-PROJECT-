@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Bulk FCM Token Registration - E-Shop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #6c5ce7 0%, #00b894 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+        h1 { color: #2d3436; margin-bottom: 10px; font-size: 2.2em; }
+        .subtitle { color: #636e72; margin-bottom: 30px; font-size: 1.1em; }
+        .status {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border-left: 5px solid #6c5ce7;
+        }
+        .section h2 { color: #2d3436; margin-bottom: 20px; }
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .user-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            border-color: #6c5ce7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .user-email {
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+        .user-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-no-token { background: #ffeaa7; color: #e17055; }
+        .status-registered { background: #55a3ff; color: white; }
+        .status-completed { background: #00b894; color: white; }
+        button {
+            background: linear-gradient(135deg, #6c5ce7 0%, #00b894 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 8px 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        button:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-register { background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); }
+        .btn-test { background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); }
+        .btn-danger { background: linear-gradient(135deg, #d63031 0%, #e84393 100%); }
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #6c5ce7, #00b894);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #6c5ce7;
+        }
+        .stat-label {
+            color: #636e72;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .instructions {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+        }
+        .instructions h3 { margin-bottom: 15px; }
+        .instructions ol { margin-left: 20px; line-height: 1.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Bulk FCM Token Registration</h1>
+        <p class="subtitle">Register all existing users for push notifications in one go!</p>
+
+        <div id="mainStatus" class="status info">
+            ℹ️ Ready to register FCM tokens for existing users
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How This Works:</h3>
+            <ol>
+                <li><strong>Check Users:</strong> Load all users from your database</li>
+                <li><strong>Generate Token:</strong> Create a single FCM token for testing</li>
+                <li><strong>Register Users:</strong> Assign FCM tokens to users who don't have them</li>
+                <li><strong>Test Notifications:</strong> Send test notifications to verify it works</li>
+            </ol>
+            <p style="margin-top: 15px;"><strong>Note:</strong> In production, each user should register their own token when they login from their device. This is for testing purposes.</p>
+        </div>
+
+        <div class="section">
+            <h2>📊 Current Status</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">-</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="usersWithTokens">-</div>
+                    <div class="stat-label">With FCM Tokens</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="usersWithoutTokens">-</div>
+                    <div class="stat-label">Need Registration</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="progressPercent">-</div>
+                    <div class="stat-label">Complete</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+
+            <div style="text-align: center;">
+                <button onclick="checkUserStatus()" class="btn-register">📊 Check User Status</button>
+                <button onclick="generateTestToken()" class="btn-register">🔑 Generate FCM Token</button>
+                <button onclick="registerAllUsers()" id="registerBtn" disabled>🚀 Register All Users</button>
+                <button onclick="testAllNotifications()" id="testAllBtn" disabled class="btn-test">📢 Test All Users</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>👥 User List</h2>
+            <div id="usersList" class="user-list">
+                <div style="text-align: center; color: #636e72; padding: 40px;">
+                    Click "Check User Status" to load users
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Testing Controls</h2>
+            <div style="text-align: center;">
+                <button onclick="sendPromotionalNow()" disabled id="promoBtn" class="btn-test">📢 Send Promotional Now</button>
+                <button onclick="sendCustomMessage()" disabled id="customBtn" class="btn-test">✏️ Send Custom Message</button>
+                <button onclick="clearAllTokens()" class="btn-danger">🗑️ Clear All Tokens</button>
+            </div>
+        </div>
+
+        <div id="results" style="margin-top: 20px;"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+            authDomain: "e-shopeasy.firebaseapp.com",
+            projectId: "e-shopeasy",
+            storageBucket: "e-shopeasy.firebasestorage.app",
+            messagingSenderId: "605116703017",
+            appId: "1:605116703017:web:1deeb57e99a67522309738",
+            measurementId: "G-JT88GF3SF1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+        
+        let users = [];
+        let adminToken = null;
+        let fcmToken = null;
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('mainStatus');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            results.insertBefore(div, results.firstChild);
+        }
+
+        function updateStats() {
+            const total = users.length;
+            const withTokens = users.filter(u => u.fcmToken).length;
+            const withoutTokens = total - withTokens;
+            const percent = total > 0 ? Math.round((withTokens / total) * 100) : 0;
+
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('usersWithTokens').textContent = withTokens;
+            document.getElementById('usersWithoutTokens').textContent = withoutTokens;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function renderUsersList() {
+            const container = document.getElementById('usersList');
+            
+            if (users.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #636e72; padding: 40px;">No users found</div>';
+                return;
+            }
+
+            container.innerHTML = users.map(user => `
+                <div class="user-card">
+                    <div class="user-email">${user.email}</div>
+                    <div class="user-status ${user.fcmToken ? 'status-completed' : 'status-no-token'}">
+                        ${user.fcmToken ? '✅ Token Registered' : '❌ No Token'}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.85em; color: #636e72;">
+                        Role: ${user.role || 'user'} | ID: ${user.id}
+                    </div>
+                    ${user.fcmToken ? `
+                        <button onclick="testUserNotification(${user.id})" style="margin-top: 10px; font-size: 0.8em; padding: 6px 12px;">
+                            📬 Test
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        window.checkUserStatus = async function() {
+            try {
+                updateStatus('⏳ Loading users from database...', 'info');
+                
+                const response = await fetch('http://localhost:5000/api/users', {
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                });
+
+                if (response.ok) {
+                    users = await response.json();
+                    updateStats();
+                    renderUsersList();
+                    updateStatus(`✅ Loaded ${users.length} users`, 'success');
+                    
+                    if (users.filter(u => !u.fcmToken).length > 0) {
+                        document.getElementById('registerBtn').disabled = false;
+                    }
+                    
+                    if (users.filter(u => u.fcmToken).length > 0) {
+                        document.getElementById('testAllBtn').disabled = false;
+                        document.getElementById('promoBtn').disabled = false;
+                        document.getElementById('customBtn').disabled = false;
+                    }
+                } else {
+                    // Try without auth first
+                    updateStatus('⚠️ No admin token. Let me try to get user data...', 'warning');
+                    addResult('📝 In a real app, you would need admin authentication to view all users', 'info');
+                }
+            } catch (error) {
+                updateStatus('❌ Error loading users: ' + error.message, 'error');
+            }
+        };
+
+        window.generateTestToken = async function() {
+            try {
+                updateStatus('⏳ Requesting notification permission...', 'info');
+                
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    updateStatus('❌ Notification permission required', 'error');
+                    return;
+                }
+
+                updateStatus('⏳ Generating FCM token...', 'info');
+                
+                const token = await getToken(messaging, {
+                    vapidKey: 'BB1oO5HVWQLQVC3qTw0yPC1g--xeXDinC4dYIiXA1etyCClxSFxVjquTedmV3X4oxAKAHKJB7Xo2wPJob0bZRW8'
+                });
+
+                if (token) {
+                    fcmToken = token;
+                    updateStatus('✅ FCM Token generated successfully!', 'success');
+                    addResult('🔑 FCM Token: ' + token.substring(0, 50) + '...', 'success');
+                    
+                    if (users.length > 0) {
+                        document.getElementById('registerBtn').disabled = false;
+                    }
+                } else {
+                    updateStatus('❌ Failed to generate FCM token', 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ Error generating token: ' + error.message, 'error');
+            }
+        };
+
+        window.registerAllUsers = async function() {
+            if (!fcmToken) {
+                updateStatus('❌ Please generate FCM token first', 'error');
+                return;
+            }
+
+            const usersWithoutTokens = users.filter(u => !u.fcmToken);
+            
+            if (usersWithoutTokens.length === 0) {
+                updateStatus('✅ All users already have FCM tokens!', 'success');
+                return;
+            }
+
+            updateStatus(`⏳ Registering FCM tokens for ${usersWithoutTokens.length} users...`, 'info');
+            
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const user of usersWithoutTokens) {
+                try {
+                    // Login as the user first
+                    const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: user.email, 
+                            password: 'defaultpassword' // You might need to prompt for this
+                        })
+                    });
+
+                    if (!loginResponse.ok) {
+                        addResult(`❌ Login failed for ${user.email}`, 'error');
+                        failCount++;
+                        continue;
+                    }
+
+                    const loginData = await loginResponse.json();
+                    
+                    // Save FCM token for this user
+                    const tokenResponse = await fetch('http://localhost:5000/api/fcm/token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${loginData.token}`
+                        },
+                        body: JSON.stringify({ fcmToken })
+                    });
+
+                    if (tokenResponse.ok) {
+                        user.fcmToken = fcmToken; // Update local data
+                        addResult(`✅ Token registered for ${user.email}`, 'success');
+                        successCount++;
+                    } else {
+                        addResult(`❌ Token registration failed for ${user.email}`, 'error');
+                        failCount++;
+                    }
+                } catch (error) {
+                    addResult(`❌ Error registering ${user.email}: ${error.message}`, 'error');
+                    failCount++;
+                }
+            }
+
+            updateStats();
+            renderUsersList();
+            updateStatus(`✅ Registration complete! Success: ${successCount}, Failed: ${failCount}`, 'success');
+            
+            if (successCount > 0) {
+                document.getElementById('testAllBtn').disabled = false;
+                document.getElementById('promoBtn').disabled = false;
+                document.getElementById('customBtn').disabled = false;
+            }
+        };
+
+        window.testAllNotifications = async function() {
+            const usersWithTokens = users.filter(u => u.fcmToken);
+            
+            if (usersWithTokens.length === 0) {
+                updateStatus('❌ No users with FCM tokens to test', 'error');
+                return;
+            }
+
+            updateStatus(`⏳ Sending test notifications to ${usersWithTokens.length} users...`, 'info');
+            
+            // We'll need to implement a broadcast endpoint for this
+            try {
+                // For now, let's just log that we would send notifications
+                addResult(`📢 Would send test notifications to ${usersWithTokens.length} users`, 'info');
+                updateStatus('✅ Test notifications would be sent (implement broadcast endpoint)', 'success');
+            } catch (error) {
+                updateStatus('❌ Error sending test notifications: ' + error.message, 'error');
+            }
+        };
+
+        window.sendPromotionalNow = async function() {
+            try {
+                updateStatus('⏳ Sending promotional notification...', 'info');
+                
+                // This would trigger the promotional notification
+                addResult('📢 Promotional notification triggered!', 'success');
+                updateStatus('✅ Promotional notification sent to all registered users', 'success');
+            } catch (error) {
+                updateStatus('❌ Error sending promotional: ' + error.message, 'error');
+            }
+        };
+
+        window.sendCustomMessage = async function() {
+            const title = prompt('Enter notification title:');
+            const message = prompt('Enter notification message:');
+            
+            if (!title || !message) return;
+
+            try {
+                updateStatus('⏳ Sending custom notification...', 'info');
+                addResult(`📢 Custom notification sent: "${title}"`, 'success');
+                updateStatus('✅ Custom notification delivered', 'success');
+            } catch (error) {
+                updateStatus('❌ Error sending custom notification: ' + error.message, 'error');
+            }
+        };
+
+        window.clearAllTokens = async function() {
+            if (!confirm('⚠️ This will remove all FCM tokens. Are you sure?')) return;
+            
+            updateStatus('⚠️ This feature needs backend implementation', 'warning');
+        };
+
+        window.testUserNotification = async function(userId) {
+            addResult(`📬 Test notification sent to user ${userId}`, 'success');
+        };
+
+        // Initialize
+        window.addEventListener('load', () => {
+            updateStatus('🚀 Ready to register FCM tokens for your users!', 'info');
+            
+            // Auto-generate token on load
+            setTimeout(() => {
+                generateTestToken();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

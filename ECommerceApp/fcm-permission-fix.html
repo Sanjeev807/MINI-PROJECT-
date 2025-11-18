@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Fix Notification Permissions - E-Shop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h1 { color: #e74c3c; margin-bottom: 10px; font-size: 2.2em; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 1.1em; }
+        .status {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+        .success { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 2px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 2px solid #ffeeba; }
+        button {
+            background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .steps {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #e74c3c;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            background: #e74c3c;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .browser-tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .browser {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+        .browser h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .browser ol {
+            text-align: left;
+            line-height: 1.6;
+        }
+        .browser li {
+            margin: 8px 0;
+            color: #495057;
+        }
+        .current-status {
+            font-size: 1.2em;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Notification Permissions</h1>
+        <p class="subtitle">Quick solution for blocked notification permissions</p>
+
+        <div id="currentStatus" class="current-status status info">
+            ℹ️ Checking current permission status...
+        </div>
+
+        <button onclick="checkCurrentPermission()" style="font-size: 18px; padding: 18px 35px;">
+            🔍 Check Permission Status
+        </button>
+
+        <button onclick="testPermissionRequest()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            🧪 Test Permission Request
+        </button>
+
+        <div class="steps">
+            <h2 style="color: #e74c3c; margin-bottom: 20px;">📋 Quick Fix Steps:</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Check Address Bar:</strong><br>
+                    Look for a 🔒 or notification icon in the address bar and click it
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Set to Allow:</strong><br>
+                    Change "Notifications" from "Block" to "Allow"
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Refresh Page:</strong><br>
+                    Refresh this page and try the "Test Permission Request" button
+                </div>
+            </div>
+        </div>
+
+        <h2 style="color: #333; margin: 30px 0 20px 0;">🌐 Browser-Specific Instructions:</h2>
+        
+        <div class="browser-tabs">
+            <div class="browser">
+                <h3>🔵 Chrome</h3>
+                <ol>
+                    <li>Click 🔒 lock icon in address bar</li>
+                    <li>Set "Notifications" to "Allow"</li>
+                    <li>Refresh page</li>
+                </ol>
+                <p><strong>Alternative:</strong> Settings → Privacy → Site Settings → Notifications</p>
+            </div>
+
+            <div class="browser">
+                <h3>🔷 Edge</h3>
+                <ol>
+                    <li>Click 🔒 lock icon in address bar</li>
+                    <li>Set "Notifications" to "Allow"</li>
+                    <li>Or: Settings → Site permissions → Notifications</li>
+                </ol>
+            </div>
+
+            <div class="browser">
+                <h3>🦊 Firefox</h3>
+                <ol>
+                    <li>Click shield icon in address bar</li>
+                    <li>Allow notifications</li>
+                    <li>Or: about:preferences#privacy → Permissions</li>
+                </ol>
+            </div>
+
+            <div class="browser">
+                <h3>🍎 Safari</h3>
+                <ol>
+                    <li>Safari → Preferences → Websites</li>
+                    <li>Select "Notifications"</li>
+                    <li>Set localhost to "Allow"</li>
+                </ol>
+            </div>
+        </div>
+
+        <div style="margin: 30px 0; padding: 20px; background: #e3f2fd; border-radius: 12px; border-left: 5px solid #2196f3;">
+            <h3 style="color: #1976d2; margin-bottom: 10px;">💡 Still Not Working?</h3>
+            <p style="color: #1976d2; line-height: 1.6;">
+                1. Try opening in <strong>Incognito/Private</strong> mode<br>
+                2. Clear browser cache and cookies<br>
+                3. Restart your browser completely<br>
+                4. Check if browser notifications are enabled system-wide
+            </p>
+        </div>
+
+        <button onclick="goToRegister()" style="font-size: 18px; padding: 18px 35px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            ✅ Go Back to Registration
+        </button>
+
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        function updateStatus(message, type) {
+            const status = document.getElementById('currentStatus');
+            status.textContent = message;
+            status.className = `current-status status ${type}`;
+        }
+
+        function showTestResult(message, type) {
+            const results = document.getElementById('testResults');
+            results.innerHTML = `<div class="status ${type}" style="margin-top: 20px;">${message}</div>`;
+        }
+
+        window.checkCurrentPermission = function() {
+            const permission = Notification.permission;
+            
+            const messages = {
+                'granted': '✅ PERMISSION GRANTED! Notifications should work perfectly.',
+                'denied': '❌ PERMISSION BLOCKED! Please follow the fix steps above.',
+                'default': '⚠️ PERMISSION NOT REQUESTED YET! Ready to request permission.'
+            };
+
+            const types = {
+                'granted': 'success',
+                'denied': 'error',
+                'default': 'warning'
+            };
+
+            updateStatus(messages[permission] || '❓ Unknown permission state', types[permission] || 'info');
+
+            console.log('Notification permission:', permission);
+
+            if (permission === 'denied') {
+                setTimeout(() => {
+                    showTestResult(`
+                        🔧 BLOCKED! Here's what happened:<br>
+                        • You previously clicked "Block" on notification request<br>
+                        • Browser remembers this setting<br>
+                        • Must be reset manually using steps above
+                    `, 'error');
+                }, 1000);
+            } else if (permission === 'granted') {
+                showTestResult('🎉 Perfect! Notifications are enabled. You can go back to registration.', 'success');
+            }
+        };
+
+        window.testPermissionRequest = function() {
+            if (Notification.permission === 'denied') {
+                showTestResult('❌ Cannot request - permission is blocked. Please follow manual reset steps above.', 'error');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                // Test with actual notification
+                new Notification('🧪 Test Notification', {
+                    body: 'Great! Notifications are working perfectly!',
+                    icon: '/favicon.ico'
+                });
+                showTestResult('✅ Test notification sent! Did you see it?', 'success');
+                return;
+            }
+
+            // Request permission
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification('🎉 Success!', {
+                        body: 'Notification permission granted successfully!',
+                        icon: '/favicon.ico'
+                    });
+                    updateStatus('✅ PERMISSION GRANTED! Notifications are now enabled!', 'success');
+                    showTestResult('🎉 Perfect! Permission granted. Test notification sent!', 'success');
+                } else if (permission === 'denied') {
+                    updateStatus('❌ PERMISSION DENIED! Please follow the manual reset steps.', 'error');
+                    showTestResult('❌ Permission denied. Please use the manual reset method above.', 'error');
+                } else {
+                    updateStatus('⚠️ Permission dismissed. Please allow when prompted.', 'warning');
+                    showTestResult('⚠️ Permission request was dismissed. Try again.', 'warning');
+                }
+            }).catch(error => {
+                console.error('Permission request error:', error);
+                showTestResult(`❌ Error requesting permission: ${error.message}`, 'error');
+            });
+        };
+
+        window.goToRegister = function() {
+            window.location.href = 'fcm-register.html';
+        };
+
+        // Auto-check permission on load
+        window.addEventListener('load', () => {
+            checkCurrentPermission();
+        });
+
+        // Check if browser supports notifications
+        if (!('Notification' in window)) {
+            updateStatus('❌ Your browser does not support notifications!', 'error');
+        }
+    </script>
+</body>
+</html>

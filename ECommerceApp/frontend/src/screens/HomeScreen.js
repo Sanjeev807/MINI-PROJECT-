@@ -8,14 +8,18 @@ import {
   Alert,
   Button,
   ButtonGroup,
-  Paper
+  Paper,
+  IconButton
 } from '@mui/material';
+import { Close } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import CarouselBanner from '../components/CarouselBanner';
 import CategoryNav from '../components/CategoryNav';
 import PromotionalBanner from '../components/PromotionalBanner';
 import { AuthContext } from '../contexts/AuthContext';
+import NotificationSetup from '../components/NotificationSetup';
+import { notificationEventBus } from '../services/notificationEventBus';
 import axios from 'axios';
 import { Capacitor } from '@capacitor/core';
 import './HomeScreen.css';
@@ -37,14 +41,28 @@ const HomeScreen = () => {
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [priceFilter, setPriceFilter] = useState('all');
+  const [showNotificationSetup, setShowNotificationSetup] = useState(false);
   const { user, token } = useContext(AuthContext);
 
   useEffect(() => {
     fetchProducts();
     if (user && token) {
       triggerPromotionalNotification();
+      // Check if user should see notification setup
+      const hasSeenNotificationSetup = localStorage.getItem('notificationSetupSeen');
+      if (!hasSeenNotificationSetup && Notification.permission !== 'granted') {
+        setShowNotificationSetup(true);
+      }
+      
+      // Send welcome back notification if user hasn't been active recently
+      const lastVisit = localStorage.getItem('lastHomeVisit');
+      const now = new Date().getTime();
+      if (!lastVisit || (now - parseInt(lastVisit)) > 3600000) { // 1 hour
+        triggerEngagementNotification();
+      }
+      localStorage.setItem('lastHomeVisit', now.toString());
     }
-  }, [category]); // Re-fetch when category changes
+  }, [category, user, token]); // Re-fetch when category changes
 
   const fetchProducts = async () => {
     try {
@@ -123,6 +141,46 @@ const HomeScreen = () => {
     }
   };
 
+  // Test function for top notifications
+  const testTopNotifications = () => {
+    const notifications = [
+      { type: 'order', title: '📦 Order Confirmed!', body: 'Your order #12345 has been placed successfully.' },
+      { type: 'promotional', title: '🔥 Flash Sale!', body: 'Get 50% off on all electronics. Limited time offer!' },
+      { type: 'account', title: '🔐 Account Secured', body: 'Your account login was successful.' },
+      { type: 'wishlist', title: '❤️ Back in Stock!', body: 'iPhone 15 Pro is now available in your wishlist.' },
+      { type: 'engagement', title: '🚀 Welcome Back!', body: 'Check out our new arrivals this week.' },
+      { type: 'success', title: '✅ Success!', body: 'Top notifications are working perfectly!' }
+    ];
+
+    notifications.forEach((notif, index) => {
+      setTimeout(() => {
+        notificationEventBus.emit(notif.type, notif.title, notif.body);
+      }, index * 1500); // Stagger notifications by 1.5 seconds
+    });
+  };
+
+  const triggerEngagementNotification = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/api/notifications/engagement`,
+        { action: 'welcome_back' },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+    } catch (err) {
+      // Silently fail - engagement notifications are not critical
+      console.log('Engagement notification failed:', err.message);
+    }
+  };
+
+  const handleNotificationSetupDismiss = () => {
+    setShowNotificationSetup(false);
+    localStorage.setItem('notificationSetupSeen', 'true');
+  };
+
   const getFilteredAndSortedProducts = () => {
     // Safety check to ensure products is always an array
     if (!Array.isArray(products)) {
@@ -168,7 +226,66 @@ const HomeScreen = () => {
       {/* Promotional Banner at top */}
       <PromotionalBanner />
       
+      {/* Test Top Notifications Button - TEMPORARY */}
+      {process.env.NODE_ENV === 'development' && (
+        <Container maxWidth="xl" sx={{ py: 1 }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Button 
+              variant="outlined" 
+              onClick={testTopNotifications}
+              sx={{ 
+                mb: 2,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                  border: 'none'
+                }
+              }}
+            >
+              🔔 Test Top Notifications (Demo)
+            </Button>
+          </Box>
+        </Container>
+      )}
+      
       <CategoryNav />
+      
+      {/* Notification Setup Banner */}
+      {showNotificationSetup && (
+        <Container maxWidth="xl" sx={{ py: 2 }}>
+          <Paper
+            sx={{
+              p: 3,
+              backgroundColor: 'rgba(25, 118, 210, 0.05)',
+              border: '1px solid rgba(25, 118, 210, 0.2)',
+              borderRadius: 2,
+              position: 'relative',
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={handleNotificationSetupDismiss}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                color: 'primary.main',
+              }}
+            >
+              <Close />
+            </IconButton>
+            <Typography variant="h6" gutterBottom color="primary">
+              🔔 Stay Updated with E-Shop!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Get instant notifications about new products, exclusive deals, flash sales, and order updates.
+            </Typography>
+            <NotificationSetup compact onSetupComplete={handleNotificationSetupDismiss} />
+          </Paper>
+        </Container>
+      )}
       
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <CarouselBanner />

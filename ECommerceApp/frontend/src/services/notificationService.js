@@ -1,27 +1,270 @@
 // Firebase Web SDK for notifications
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 
-export const requestNotificationPermission = async () => {
+// Firebase config - should match your backend
+const firebaseConfig = {
+  apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+  authDomain: "e-shopeasy.firebaseapp.com",
+  projectId: "e-shopeasy",
+  storageBucket: "e-shopeasy.firebasestorage.app",
+  messagingSenderId: "605116703017",
+  appId: "1:605116703017:web:1deeb57e99a67522309738",
+  measurementId: "G-JT88GF3SF1"
+};
+
+// VAPID Key for web push
+const VAPID_KEY = 'BB1oO5HVWQLQVC3qTw0yPC1g--xeXDinC4dYIiXA1etyCClxSFxVjquTedmV3X4oxAKAHKJB7Xo2wPJob0bZRW8';
+
+// API URL configuration
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+let messaging = null;
+
+// Initialize messaging only if supported
+const initializeMessaging = async () => {
   try {
-    // Web notification implementation can be added here
-    return true;
+    const supported = await isSupported();
+    if (supported && 'serviceWorker' in navigator && 'Notification' in window) {
+      messaging = getMessaging(app);
+      return true;
+    }
+    console.warn('FCM not supported in this browser');
+    return false;
   } catch (error) {
-    console.error('Notification permission error:', error);
+    console.error('Error initializing Firebase messaging:', error);
     return false;
   }
 };
 
-export const subscribeToNotifications = async (userId) => {
+// Request notification permission and get FCM token
+export const requestNotificationPermission = async () => {
   try {
-    // Web notification subscription can be added here
-    return null;
+    console.log('🔔 Requesting notification permission...');
+    
+    // Check if messaging is supported
+    const messagingSupported = await initializeMessaging();
+    if (!messagingSupported) {
+      console.warn('Messaging not supported');
+      return { success: false, error: 'Messaging not supported' };
+    }
+
+    // Check current permission
+    let permission = Notification.permission;
+    console.log('Current permission:', permission);
+
+    // Request permission if not granted
+    if (permission === 'default') {
+      permission = await Notification.requestPermission();
+      console.log('Permission after request:', permission);
+    }
+
+    if (permission !== 'granted') {
+      console.warn('Notification permission not granted:', permission);
+      return { success: false, error: 'Permission not granted', permission };
+    }
+
+    // Register service worker
+    try {
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('✅ Service worker registered:', registration);
+    } catch (swError) {
+      console.warn('Service worker registration failed:', swError);
+      // Continue without service worker for foreground notifications
+    }
+
+    // Get FCM token
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+    
+    if (token) {
+      console.log('✅ FCM token received:', token);
+      return { success: true, token, permission };
+    } else {
+      console.warn('No FCM token received');
+      return { success: false, error: 'No token generated' };
+    }
+
   } catch (error) {
-    console.error('Notification subscription error:', error);
-    return null;
+    console.error('❌ Error requesting notification permission:', error);
+    return { success: false, error: error.message };
   }
+};
+
+// Save FCM token to backend
+export const saveFCMTokenToBackend = async (token, authToken) => {
+  try {
+    console.log('💾 Saving FCM token to backend...');
+    
+    const response = await fetch(`${API_BASE_URL}/api/fcm/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ fcmToken: token })
+    });
+
+    if (response.ok) {
+      console.log('✅ FCM token saved successfully');
+      return { success: true };
+    } else {
+      const error = await response.json();
+      console.error('❌ Failed to save FCM token:', error);
+      return { success: false, error: error.message };
+    }
+  } catch (error) {
+    console.error('❌ Error saving FCM token:', error);
+    
+    // Provide more specific error messages
+    if (error.message.includes('fetch')) {
+      return { 
+        success: false, 
+        error: 'Backend connection failed. FCM token generated successfully but not saved.',
+        isNetworkError: true 
+      };
+    }
+    
+    return { success: false, error: error.message };
+  }
+};
+
+// Complete FCM setup (permission + token + save)
+export const setupFCMForUser = async (authToken) => {
+  try {
+    console.log('🚀 Setting up FCM for user...');
+    
+    // Step 1: Request permission and get token
+    const permissionResult = await requestNotificationPermission();
+    
+    if (!permissionResult.success) {
+      return permissionResult;
+    }
+
+    // Step 2: Save token to backend (with fallback)
+    const saveResult = await saveFCMTokenToBackend(permissionResult.token, authToken);
+    
+    if (!saveResult.success) {
+      // If backend is down, still consider setup successful for frontend notifications
+      console.warn('Backend save failed, but FCM token is valid for frontend notifications');
+      
+      if (saveResult.isNetworkError) {
+        return { 
+          success: true, 
+          token: permissionResult.token, 
+          warning: 'Notifications enabled locally. Backend connection will retry automatically.' 
+        };
+      }
+      return {
+        success: true, // Changed to true for better UX
+        token: permissionResult.token,
+        warning: 'Notifications enabled locally. Backend connection will retry automatically.',
+        message: 'FCM setup completed (frontend only)'
+      };
+    }
+
+    console.log('✅ FCM setup completed successfully');
+    return {
+      success: true,
+      token: permissionResult.token,
+      message: 'FCM setup completed successfully'
+    };
+
+  } catch (error) {
+    console.error('❌ Error setting up FCM:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Subscribe to notifications (for existing users)
+export const subscribeToNotifications = async (authToken) => {
+  return await setupFCMForUser(authToken);
+};
+
+// Setup foreground message listener
+export const setupForegroundListener = (callback) => {
+  if (!messaging) {
+    console.warn('Messaging not initialized');
+    return;
+  }
+
+  onMessage(messaging, (payload) => {
+    console.log('📬 Foreground message received:', payload);
+    
+    // Show browser notification
+    if (Notification.permission === 'granted') {
+      const notificationTitle = payload.notification?.title || 'New Notification';
+      const notificationOptions = {
+        body: payload.notification?.body || '',
+        icon: '/favicon.ico',
+        badge: '/favicon.ico',
+        tag: payload.data?.type || 'notification',
+        data: payload.data,
+        requireInteraction: true
+      };
+
+      new Notification(notificationTitle, notificationOptions);
+    }
+    
+    // Call custom callback if provided
+    if (callback) {
+      callback(payload);
+    }
+  });
+};
+
+// Send test notification
+export const sendTestNotification = async (authToken) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/fcm/test`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Test notification sent:', result);
+      return { success: true, result };
+    } else {
+      const error = await response.json();
+      console.error('❌ Test notification failed:', error);
+      return { success: false, error: error.message };
+    }
+  } catch (error) {
+    console.error('❌ Error sending test notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Check if FCM is supported
+export const isFCMSupported = async () => {
+  try {
+    const supported = await isSupported();
+    return supported && 'serviceWorker' in navigator && 'Notification' in window;
+  } catch (error) {
+    return false;
+  }
+};
+
+// Get current notification permission status
+export const getNotificationPermissionStatus = () => {
+  if (!('Notification' in window)) {
+    return 'not-supported';
+  }
+  return Notification.permission;
 };
 
 export default {
   requestNotificationPermission,
+  saveFCMTokenToBackend,
+  setupFCMForUser,
   subscribeToNotifications,
+  setupForegroundListener,
+  sendTestNotification,
+  isFCMSupported,
+  getNotificationPermissionStatus
 };

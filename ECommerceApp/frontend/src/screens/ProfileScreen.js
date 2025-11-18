@@ -40,6 +40,7 @@ import {
   KeyboardArrowRight,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationSetup from '../components/NotificationSetup';
 
 const ProfileScreen = () => {
   const { user, logout, updateUser } = useAuth();
@@ -313,6 +314,11 @@ const ProfileScreen = () => {
               />
             </ListItem>
           </Paper>
+
+          {/* Notification Setup Section */}
+          <Box sx={{ mt: 2 }}>
+            <NotificationSetup />
+          </Box>
 
           {/* Quick Stats */}
           <Grid container spacing={2} sx={{ mt: 2 }}>

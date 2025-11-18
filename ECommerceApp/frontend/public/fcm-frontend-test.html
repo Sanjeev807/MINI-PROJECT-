@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Frontend Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 FCM Frontend Test</h1>
+        
+        <div class="test-section">
+            <h3>Notification Permission Status</h3>
+            <p id="permission-status">Checking...</p>
+            <button onclick="checkPermission()">Check Permission</button>
+            <button onclick="requestPermission()">Request Permission</button>
+        </div>
+
+        <div class="test-section">
+            <h3>FCM Token Generation</h3>
+            <p id="token-status">Not generated</p>
+            <button onclick="generateToken()" id="generate-btn">Generate FCM Token</button>
+            <textarea id="token-display" rows="3" style="width: 100%; margin-top: 10px;" placeholder="FCM Token will appear here..."></textarea>
+        </div>
+
+        <div class="test-section">
+            <h3>Backend Connection Test</h3>
+            <p id="backend-status">Not tested</p>
+            <button onclick="testBackend()">Test Backend Connection</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Complete FCM Setup</h3>
+            <p id="setup-status">Ready to test</p>
+            <button onclick="completeSetup()" id="setup-btn">Run Complete FCM Setup</button>
+        </div>
+
+        <div class="log">
+            <h4>Console Log:</h4>
+            <div id="console-log"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+            authDomain: "e-shopeasy.firebaseapp.com",
+            projectId: "e-shopeasy",
+            storageBucket: "e-shopeasy.firebasestorage.app",
+            messagingSenderId: "605116703017",
+            appId: "1:605116703017:web:1deeb57e99a67522309738",
+            measurementId: "G-JT88GF3SF1"
+        };
+
+        const VAPID_KEY = 'BB1oO5HVWQLQVC3qTw0yPC1g--xeXDinC4dYIiXA1etyCClxSFxVjquTedmV3X4oxAKAHKJB7Xo2wPJob0bZRW8';
+        const API_BASE_URL = 'http://localhost:5000';
+
+        const app = initializeApp(firebaseConfig);
+        let messaging = null;
+        let currentToken = null;
+
+        // Utility functions
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('console-log');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+            logEntry.className = type;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = type;
+        }
+
+        // Initialize messaging
+        async function initMessaging() {
+            try {
+                const supported = await isSupported();
+                if (supported && 'serviceWorker' in navigator && 'Notification' in window) {
+                    messaging = getMessaging(app);
+                    log('✅ Firebase messaging initialized', 'success');
+                    return true;
+                } else {
+                    log('❌ FCM not supported in this browser', 'error');
+                    return false;
+                }
+            } catch (error) {
+                log('❌ Error initializing messaging: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Check permission status
+        window.checkPermission = function() {
+            const permission = Notification.permission;
+            updateStatus('permission-status', `Current permission: ${permission}`, 
+                permission === 'granted' ? 'success' : 
+                permission === 'denied' ? 'error' : 'warning');
+            log(`Notification permission: ${permission}`);
+        };
+
+        // Request permission
+        window.requestPermission = async function() {
+            try {
+                log('🔔 Requesting notification permission...');
+                const permission = await Notification.requestPermission();
+                updateStatus('permission-status', `Permission result: ${permission}`, 
+                    permission === 'granted' ? 'success' : 'error');
+                log(`Permission result: ${permission}`, permission === 'granted' ? 'success' : 'error');
+            } catch (error) {
+                log('❌ Error requesting permission: ' + error.message, 'error');
+                updateStatus('permission-status', 'Error requesting permission', 'error');
+            }
+        };
+
+        // Generate FCM token
+        window.generateToken = async function() {
+            try {
+                document.getElementById('generate-btn').disabled = true;
+                log('🚀 Generating FCM token...');
+
+                if (!messaging) {
+                    const initialized = await initMessaging();
+                    if (!initialized) {
+                        updateStatus('token-status', 'Cannot generate token - FCM not supported', 'error');
+                        return;
+                    }
+                }
+
+                if (Notification.permission !== 'granted') {
+                    log('⚠️ Permission not granted, requesting...', 'warning');
+                    await requestPermission();
+                }
+
+                if (Notification.permission !== 'granted') {
+                    updateStatus('token-status', 'Cannot generate token - permission denied', 'error');
+                    return;
+                }
+
+                // Register service worker
+                try {
+                    await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                    log('✅ Service worker registered');
+                } catch (swError) {
+                    log('⚠️ Service worker registration failed: ' + swError.message, 'warning');
+                }
+
+                const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                
+                if (token) {
+                    currentToken = token;
+                    document.getElementById('token-display').value = token;
+                    updateStatus('token-status', 'Token generated successfully!', 'success');
+                    log('✅ FCM token generated: ' + token.substring(0, 50) + '...', 'success');
+                } else {
+                    updateStatus('token-status', 'No token received', 'error');
+                    log('❌ No FCM token received', 'error');
+                }
+
+            } catch (error) {
+                updateStatus('token-status', 'Error generating token', 'error');
+                log('❌ Error generating token: ' + error.message, 'error');
+            } finally {
+                document.getElementById('generate-btn').disabled = false;
+            }
+        };
+
+        // Test backend connection
+        window.testBackend = async function() {
+            try {
+                log('🔍 Testing backend connection...');
+                const response = await fetch(`${API_BASE_URL}/api/products`);
+                
+                if (response.ok) {
+                    updateStatus('backend-status', 'Backend connected successfully', 'success');
+                    log('✅ Backend is responding', 'success');
+                } else {
+                    updateStatus('backend-status', `Backend error: ${response.status}`, 'error');
+                    log(`❌ Backend error: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('backend-status', 'Backend connection failed', 'error');
+                log('❌ Backend connection failed: ' + error.message, 'error');
+            }
+        };
+
+        // Complete FCM setup
+        window.completeSetup = async function() {
+            try {
+                document.getElementById('setup-btn').disabled = true;
+                log('🚀 Running complete FCM setup...');
+
+                // Step 1: Initialize
+                if (!messaging) {
+                    const initialized = await initMessaging();
+                    if (!initialized) {
+                        updateStatus('setup-status', 'Setup failed - FCM not supported', 'error');
+                        return;
+                    }
+                }
+
+                // Step 2: Get permission and token
+                if (Notification.permission !== 'granted') {
+                    await requestPermission();
+                }
+
+                if (Notification.permission !== 'granted') {
+                    updateStatus('setup-status', 'Setup failed - permission denied', 'error');
+                    return;
+                }
+
+                // Step 3: Generate token
+                if (!currentToken) {
+                    await generateToken();
+                }
+
+                if (!currentToken) {
+                    updateStatus('setup-status', 'Setup failed - no token generated', 'error');
+                    return;
+                }
+
+                // Step 4: Try to save to backend (optional)
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/fcm/token`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer demo-token'
+                        },
+                        body: JSON.stringify({ fcmToken: currentToken })
+                    });
+
+                    if (response.ok) {
+                        log('✅ Token saved to backend', 'success');
+                        updateStatus('setup-status', 'Complete setup successful!', 'success');
+                    } else {
+                        log('⚠️ Token generated but backend save failed', 'warning');
+                        updateStatus('setup-status', 'Setup completed (frontend only)', 'warning');
+                    }
+                } catch (backendError) {
+                    log('⚠️ Frontend setup complete, backend offline', 'warning');
+                    updateStatus('setup-status', 'Setup completed (frontend only)', 'warning');
+                }
+
+                // Step 5: Setup message listener
+                onMessage(messaging, (payload) => {
+                    log('📬 Received foreground message: ' + JSON.stringify(payload), 'info');
+                    
+                    // Show browser notification
+                    if (Notification.permission === 'granted') {
+                        new Notification(
+                            payload.notification?.title || 'New Notification',
+                            {
+                                body: payload.notification?.body || '',
+                                icon: '/favicon.ico'
+                            }
+                        );
+                    }
+                });
+
+                log('🎉 FCM setup completed successfully!', 'success');
+
+            } catch (error) {
+                updateStatus('setup-status', 'Setup failed', 'error');
+                log('❌ Setup error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('setup-btn').disabled = false;
+            }
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkPermission();
+            log('🚀 FCM Test Page loaded');
+        });
+    </script>
+</body>
+</html>

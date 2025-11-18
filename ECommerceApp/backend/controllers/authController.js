@@ -41,6 +41,18 @@ exports.register = async (req, res) => {
       if (user.fcmToken) {
         try {
           await fcmService.sendAccountNotification(user.id, user.name, 'register');
+          // Send a welcome promotional notification after 30 seconds
+          setTimeout(async () => {
+            try {
+              await fcmService.sendPromotionalNotification(user.id, user.name, 'discount_offer', {
+                discount: '20%',
+                category: 'all products',
+                link: '/offers'
+              });
+            } catch (delayedError) {
+              logger.error('Delayed promotional notification failed:', delayedError);
+            }
+          }, 30000);
         } catch (fcmError) {
           logger.error('FCM notification failed:', fcmError);
         }
@@ -90,10 +102,12 @@ exports.login = async (req, res) => {
         'login_alert'
       );
 
-      // Send FCM push notification
+      // Send FCM push notification for login
       if (user.fcmToken) {
         try {
           await fcmService.sendAccountNotification(user.id, user.name, 'login');
+          // Also send welcome back engagement notification
+          await fcmService.sendEngagementNotification(user.id, user.name, 'welcome_back');
         } catch (fcmError) {
           logger.error('FCM notification failed:', fcmError);
         }

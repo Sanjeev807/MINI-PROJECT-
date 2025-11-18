@@ -311,20 +311,156 @@ class FCMService {
     });
   }
 
+  // ========== ORDER NOTIFICATIONS ==========
+  async sendOrderNotification(userId, userName, orderStatus, orderId, orderDetails = {}) {
+    const notifications = {
+      placed: {
+        title: '📦 Order Placed Successfully!',
+        body: `Hi ${userName || 'there'}! Your order #${orderId} has been placed successfully. We'll notify you when it ships.`
+      },
+      shipped: {
+        title: '✈️ Order Shipped!',
+        body: `Great news ${userName || 'there'}! Your order #${orderId} has been shipped and is on its way.`
+      },
+      out_for_delivery: {
+        title: '🚚 Out for Delivery',
+        body: `${userName || 'Your'} order #${orderId} is out for delivery! It should arrive today.`
+      },
+      delivered: {
+        title: '✔️ Order Delivered Successfully!',
+        body: `Your order #${orderId} has been delivered! Thank you for shopping with E-Shop.`
+      },
+      cancelled: {
+        title: '❌ Order Cancelled',
+        body: `Your order #${orderId} has been cancelled. Refund will be processed within 3-5 business days.`
+      }
+    };
+
+    const notification = notifications[orderStatus] || notifications.placed;
+
+    return await this.sendToUser(userId, notification.title, notification.body, {
+      type: 'order',
+      status: orderStatus,
+      orderId: orderId,
+      link: `/orders/${orderId}`,
+      ...orderDetails
+    });
+  }
+
+  // ========== WISHLIST & STOCK NOTIFICATIONS ==========
+  async sendWishlistNotification(userId, userName, type, productName, productId) {
+    const notifications = {
+      back_in_stock: {
+        title: '💖 Wishlist Item Back in Stock!',
+        body: `Good news ${userName || 'there'}! ${productName} is now back in stock. Grab it before it's gone!`
+      },
+      price_drop: {
+        title: '⬇️ Price Drop Alert!',
+        body: `${productName} from your wishlist just got cheaper! Don't miss this opportunity.`
+      },
+      similar_products: {
+        title: '⭐ New Similar Products Available',
+        body: `We found new products similar to ${productName} that you might love!`
+      }
+    };
+
+    const notification = notifications[type] || notifications.back_in_stock;
+
+    return await this.sendToUser(userId, notification.title, notification.body, {
+      type: 'wishlist',
+      action: type,
+      productId: productId,
+      productName: productName,
+      link: `/products/${productId}`
+    });
+  }
+
+  // ========== ENGAGEMENT NOTIFICATIONS ==========
+  async sendEngagementNotification(userId, userName, type = 'welcome_back') {
+    const notifications = {
+      welcome_back: {
+        title: '🚀 Welcome Back to E-Shop!',
+        body: `Hi ${userName || 'there'}! Check out what's new and trending just for you.`
+      },
+      trending_products: {
+        title: '🌟 Trending Products Right Now',
+        body: `${userName || 'Don\'t'} miss out on today's hottest products! Limited stock available.`
+      },
+      cart_reminder: {
+        title: '🛒 Items Left in Your Cart',
+        body: `${userName || 'You'} have items waiting in your cart. Complete your purchase before they sell out!`
+      },
+      exclusive_offer: {
+        title: '🎁 You Have an Exclusive Offer!',
+        body: `${userName || 'Special'} discount just for you! Use it before it expires.`
+      }
+    };
+
+    const notification = notifications[type] || notifications.welcome_back;
+
+    return await this.sendToUser(userId, notification.title, notification.body, {
+      type: 'engagement',
+      action: type,
+      link: type === 'cart_reminder' ? '/cart' : '/',
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // ========== PROMOTIONAL NOTIFICATIONS ==========
+  async sendPromotionalNotification(userId, userName, type, details = {}) {
+    const notifications = {
+      flash_sale: {
+        title: '🔥 Flash Sale Alert!',
+        body: `${userName || 'Hurry'}! Flash sale is live now. Up to ${details.discount || '70%'} off on selected items!`
+      },
+      discount_offer: {
+        title: '🛍️ Special Discount Just for You!',
+        body: `${userName || 'Exclusive'} ${details.discount || '50%'} off on ${details.category || 'your favorite products'}!`
+      },
+      limited_deal: {
+        title: '⚡ Limited-Time Deal!',
+        body: `Only ${details.timeLeft || '24 hours'} left! Get ${details.discount || 'amazing deals'} before they expire.`
+      },
+      personalized: {
+        title: '🎯 Handpicked Just for You!',
+        body: `${userName || 'We'} found products you'll love based on your preferences. Check them out!`
+      },
+      festive_offer: {
+        title: '🏷️ Special Festive Offers!',
+        body: `${userName || 'Celebrate'} the season with our exclusive festive discounts and offers!`
+      }
+    };
+
+    const notification = notifications[type] || notifications.discount_offer;
+
+    return await this.sendToUser(userId, notification.title, notification.body, {
+      type: 'promotional',
+      action: type,
+      link: details.link || '/offers',
+      discount: details.discount,
+      category: details.category,
+      validUntil: details.validUntil
+    });
+  }
+
   // ========== ACCOUNT NOTIFICATIONS ==========
   async sendAccountNotification(userId, userName, action = 'login') {
     const notifications = {
       login: {
-        title: '🔐 Login successful — Happy Shopping!',
-        body: `Welcome back${userName ? ', ' + userName : ''}! Start shopping for amazing deals.`
+        title: '🔑 Login Successful',
+        body: `Welcome back${userName ? ', ' + userName : ''}! Ready for some amazing shopping?`
       },
       profile_update: {
-        title: '✅ Your profile was updated successfully.',
-        body: `${userName || 'Your'} profile information has been updated.`
+        title: '👤 Profile Updated Successfully',
+        body: `${userName || 'Your'} profile information has been updated successfully.`
+      },
+      password_change: {
+        title: '🔄 Password Changed',
+        body: `${userName || 'Your'} password has been changed successfully. Your account is secure.`
       },
       register: {
         title: '🎉 Welcome to E-Shop!',
-        body: `Hi ${userName || 'there'}, thank you for joining us. Start shopping now!`
+        body: `Hi ${userName || 'there'}, welcome to E-Shop! Start exploring amazing products now.`
       }
     };
 
@@ -333,7 +469,7 @@ class FCMService {
     return await this.sendToUser(userId, notification.title, notification.body, {
       type: 'account',
       action: action,
-      link: '/profile'
+      link: action === 'login' ? '/' : '/profile'
     });
   }
 }

@@ -1,8 +1,28 @@
 import React, {createContext, useState, useContext, useEffect} from 'react';
 import {storage} from '../utils/storage';
 import {cartAPI} from '../services/api';
+import axios from 'axios';
 
 const CartContext = createContext();
+
+// Cart reminder notification function
+const triggerCartReminderNotification = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      await axios.post(
+        `${API_URL}/api/notifications/cart-reminder`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+    }
+  } catch (error) {
+    console.log('Cart reminder notification failed:', error.message);
+  }
+};
 
 export const CartProvider = ({children}) => {
   const [cartItems, setCartItems] = useState([]);

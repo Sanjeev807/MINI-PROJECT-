@@ -2,6 +2,8 @@ const admin = require('firebase-admin');
 
 const initializeFirebase = () => {
   try {
+    console.log('🔧 Initializing Firebase Admin SDK...');
+    
     // Check if Firebase Admin is already initialized
     if (admin.apps.length === 0) {
       
@@ -11,6 +13,7 @@ const initializeFirebase = () => {
       try {
         // Try to load the service account key file
         serviceAccount = require('./serviceAccountKey.json');
+        console.log('📄 Service account key loaded successfully');
         
         // Check if it has real values (not placeholder)
         if (serviceAccount.private_key === 'YOUR_PRIVATE_KEY' || 
@@ -18,9 +21,20 @@ const initializeFirebase = () => {
           throw new Error('Service account key contains placeholder values');
         }
         
+        // Verify project_id
+        if (serviceAccount.project_id) {
+          console.log(`🎯 Firebase Project ID: ${serviceAccount.project_id}`);
+        }
+        
       } catch (error) {
-        // If no valid service account, create a mock one for development
-        // Return false to indicate Firebase is NOT initialized
+        // If no valid service account, use development mode
+        console.log('🔧 Using development mode for Firebase (push notifications disabled)');
+        console.log('📝 To enable push notifications:');
+        console.log('   1. Go to Firebase Console: https://console.firebase.google.com');
+        console.log('   2. Create a new project or select existing');
+        console.log('   3. Go to Project Settings > Service Accounts');
+        console.log('   4. Generate new private key and download the JSON');
+        console.log('   5. Replace backend/config/serviceAccountKey.json with the downloaded file');
         return false;
       }
       
@@ -28,11 +42,12 @@ const initializeFirebase = () => {
         credential: admin.credential.cert(serviceAccount)
       });
       
-      // Return true to indicate Firebase IS initialized
+      console.log('✅ Firebase Admin SDK initialized with project:', serviceAccount.project_id);
       return true;
     }
     
     // Already initialized
+    console.log('✅ Firebase Admin SDK already initialized');
     return true;
     
   } catch (error) {

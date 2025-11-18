@@ -102,6 +102,14 @@
             📬 Send Test Notification
         </button>
 
+        <button onclick="checkPermissions()" style="background: #17a2b8;">
+            🔍 Check Permissions
+        </button>
+
+        <button onclick="showPermissionHelp()" style="background: #ffc107; color: #000;">
+            ❓ Permission Help
+        </button>
+
         <div id="tokenDisplay" style="margin-top: 20px; font-size: 12px; word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 8px; display: none;">
             <strong>Your FCM Token:</strong><br>
             <span id="tokenText"></span>
@@ -147,10 +155,25 @@
             updateStatus('⏳ Requesting notification permission...', 'info');
 
             try {
-                // Step 1: Request notification permission
-                const permission = await Notification.requestPermission();
+                // Step 1: Check current permission status
+                console.log('Current permission:', Notification.permission);
+                
+                let permission = Notification.permission;
+                
+                if (permission === 'default') {
+                    // Request permission
+                    permission = await Notification.requestPermission();
+                    console.log('Permission after request:', permission);
+                }
+                
+                if (permission === 'denied' || permission === 'blocked') {
+                    updateStatus('❌ Notifications blocked! Please reset permissions: Chrome Settings → Privacy → Site Settings → Notifications → Allow', 'error');
+                    document.getElementById('registerBtn').disabled = false;
+                    return;
+                }
+                
                 if (permission !== 'granted') {
-                    updateStatus('❌ Notification permission required. Please enable in browser settings.', 'error');
+                    updateStatus('⚠️ Permission not granted. Please allow notifications when prompted.', 'warning');
                     document.getElementById('registerBtn').disabled = false;
                     return;
                 }
@@ -251,6 +274,60 @@
             document.getElementById('testBtn').disabled = false;
         };
 
+        window.checkPermissions = function() {
+            const permission = Notification.permission;
+            console.log('Current permission status:', permission);
+            
+            const statusMap = {
+                'granted': '✅ Notifications are ALLOWED',
+                'denied': '❌ Notifications are BLOCKED',
+                'default': '⚠️ Permission not requested yet'
+            };
+            
+            const typeMap = {
+                'granted': 'success',
+                'denied': 'error', 
+                'default': 'warning'
+            };
+            
+            updateStatus(statusMap[permission] || '❓ Unknown permission status', typeMap[permission] || 'info');
+            
+            if (permission === 'denied') {
+                setTimeout(() => {
+                    updateStatus('🔧 To fix: Chrome → Settings → Privacy → Site Settings → Notifications → Find this site → Allow', 'info');
+                }, 2000);
+            }
+        };
+
+        window.showPermissionHelp = function() {
+            const helpText = `
+🔧 How to Fix Notification Permissions:
+
+CHROME:
+1. Click the lock icon 🔒 in address bar
+2. Set Notifications to "Allow"
+3. Refresh the page
+
+OR
+
+1. Chrome Settings (⋮ menu)
+2. Privacy and Security → Site Settings
+3. Notifications → Find localhost → Allow
+
+EDGE:
+1. Settings → Site permissions
+2. Notifications → localhost → Allow
+
+FIREFOX:
+1. Click shield icon in address bar
+2. Allow notifications
+
+Then refresh this page and try again!
+            `;
+            
+            alert(helpText);
+        };
+
         // Listen for foreground messages
         onMessage(messaging, (payload) => {
             console.log('📬 Foreground message received:', payload);
@@ -275,6 +352,11 @@
                     console.log('Service Worker registration failed:', error);
                 });
         }
+
+        // Auto-check permissions on load
+        window.addEventListener('load', () => {
+            setTimeout(checkPermissions, 1000);
+        });
     </script>
 </body>
 </html>

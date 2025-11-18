@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import Loader from '../components/Loader';
+import NotificationWelcomeDialog from '../components/NotificationWelcomeDialog';
 import { validateEmail, validatePassword } from '../utils/helpers';
 import './LoginScreen.css';
 
@@ -30,7 +31,8 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -58,15 +60,28 @@ const LoginScreen = () => {
     setLoading(false);
 
     if (result.success) {
+      // Check if user should see notification setup
+      const hasSeenNotificationSetup = localStorage.getItem('notificationSetupSeen');
+      const shouldShowNotifications = !hasSeenNotificationSetup && Notification.permission !== 'granted';
+      
       // Redirect admin users to admin dashboard
       if (result.user && result.user.role === 'admin') {
         navigate('/admin');
       } else {
-        navigate('/');
+        if (shouldShowNotifications) {
+          setShowNotificationDialog(true);
+        } else {
+          navigate('/');
+        }
       }
     } else {
       setError(result.message || 'Login failed');
     }
+  };
+
+  const handleNotificationDialogClose = () => {
+    setShowNotificationDialog(false);
+    navigate('/');
   };
 
   if (loading) {
@@ -175,6 +190,13 @@ const LoginScreen = () => {
           </Paper>
         </Box>
       </Container>
+
+      {/* Notification Welcome Dialog */}
+      <NotificationWelcomeDialog 
+        open={showNotificationDialog}
+        onClose={handleNotificationDialogClose}
+        userName={user?.name || 'User'}
+      />
     </div>
   );
 };

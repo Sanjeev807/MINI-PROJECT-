@@ -21,9 +21,19 @@ const sequelize = new Sequelize({
 
 const connectDB = async () => {
   try {
+    console.log('🔗 Connecting to PostgreSQL database...');
+    console.log(`📍 Database: ${process.env.DB_NAME || 'ecommerce'} on ${process.env.DB_HOST || 'localhost'}`);
+    
     await sequelize.authenticate();
+    console.log('✅ PostgreSQL Database connected successfully');
+    
+    return true;
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);
+    console.log('💡 Make sure PostgreSQL is running and database credentials are correct');
+    console.log(`   Host: ${process.env.DB_HOST || 'localhost'}`);
+    console.log(`   Database: ${process.env.DB_NAME || 'ecommerce'}`);
+    console.log(`   User: ${process.env.DB_USER || 'postgres'}`);
     process.exit(1);
   }
 };

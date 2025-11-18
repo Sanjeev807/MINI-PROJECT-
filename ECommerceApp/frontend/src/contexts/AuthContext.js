@@ -1,5 +1,7 @@
 import React, {createContext, useState, useContext, useEffect} from 'react';
 import {authService} from '../services/authService';
+import {setupFCMForUser, setupForegroundListener} from '../services/notificationService';
+import {notificationEventBus} from '../services/notificationEventBus';
 
 const AuthContext = createContext();
 
@@ -8,10 +10,48 @@ export const AuthProvider = ({children}) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [fcmSetup, setFcmSetup] = useState(false);
 
   useEffect(() => {
     checkAuthentication();
   }, []);
+
+  // Setup FCM when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && token && !fcmSetup) {
+      setupNotifications();
+    }
+  }, [isAuthenticated, token, fcmSetup]);
+
+  const setupNotifications = async () => {
+    try {
+      console.log('🔔 Setting up notifications for authenticated user...');
+      
+      const fcmResult = await setupFCMForUser(token);
+      
+      if (fcmResult.success) {
+        console.log('✅ FCM setup completed for user');
+        setFcmSetup(true);
+        
+        // Setup foreground message listener
+        setupForegroundListener((payload) => {
+          console.log('📬 Received notification:', payload.notification?.title);
+          
+          // Use the event bus to show top notification
+          notificationEventBus.showFCMNotification(payload);
+        });
+        
+      } else if (fcmResult.isNetworkError) {
+        console.warn('⚠️ FCM setup postponed: Backend not available, will retry when connected');
+        // Don't block user experience, will retry on next interaction
+      } else {
+        console.warn('⚠️ FCM setup failed:', fcmResult.error);
+        // Don't block user experience, just log the issue
+      }
+    } catch (error) {
+      console.error('❌ Error setting up notifications:', error);
+    }
+  };
 
   const checkAuthentication = async () => {
     try {
@@ -34,6 +74,15 @@ export const AuthProvider = ({children}) => {
         setUser(result.user);
         setToken(result.token);
         setIsAuthenticated(true);
+        setFcmSetup(false); // Reset FCM setup to trigger notification setup
+        
+        // Show welcome back notification locally
+        setTimeout(() => {
+          notificationEventBus.showWelcome(
+            `👋 Welcome back, ${result.user.name}!`,
+            'Notifications are automatically enabled. You\'ll receive updates for orders, offers, and more!'
+          );
+        }, 2000);
       }
       return result;
     } catch (error) {
@@ -49,6 +98,15 @@ export const AuthProvider = ({children}) => {
         setUser(result.user);
         setToken(result.token);
         setIsAuthenticated(true);
+        setFcmSetup(false); // Reset FCM setup to trigger notification setup
+        
+        // Show welcome notification for new users
+        setTimeout(() => {
+          notificationEventBus.showWelcome(
+            `🎉 Welcome to E-Shop, ${result.user.name}!`,
+            'Your account is ready! Notifications are enabled automatically for the best shopping experience.'
+          );
+        }, 3000);
       }
       return result;
     } catch (error) {
@@ -63,6 +121,14 @@ export const AuthProvider = ({children}) => {
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
+      setFcmSetup(false);
+      
+      // Show local logout notification
+      notificationEventBus.showSuccess(
+        '👋 Logged out successfully',
+        'Thank you for shopping with E-Shop! Come back soon.'
+      );
+      
       return {success: true};
     } catch (error) {
       console.error('Logout error:', error);
@@ -79,10 +145,12 @@ export const AuthProvider = ({children}) => {
     token,
     loading,
     isAuthenticated,
+    fcmSetup,
     login,
     register,
     logout,
     updateUser,
+    setupNotifications, // Expose for manual trigger
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

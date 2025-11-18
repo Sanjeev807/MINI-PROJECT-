@@ -28,11 +28,14 @@ app.use((req, res, next) => {
 // Connect to PostgreSQL and sync models
 (async () => {
   try {
+    console.log('🚀 Starting E-commerce server...');
     await connectDB();
     await sequelize.sync({ alter: true }); // This will update table schemas based on model changes
     logger.info('Database tables synchronized successfully');
+    console.log('📊 Database tables synchronized successfully');
   } catch (error) {
     logger.error('Error syncing database tables:', error);
+    console.error('❌ Error syncing database tables:', error);
     process.exit(1);
   }
 })();
@@ -42,16 +45,21 @@ let firebaseEnabled = false;
 try {
   firebaseEnabled = initializeFirebase();
   if (firebaseEnabled) {
-    logger.info('✅ Firebase Admin SDK initialized successfully');
+    logger.info('Firebase Admin SDK initialized successfully');
+    console.log('✅ Firebase Admin SDK initialized successfully');
     logger.info('📱 Push notifications enabled via Firebase Cloud Messaging');
     
     // Start promotional notification scheduler
     const promotionalScheduler = require('./services/promotionalScheduler');
     promotionalScheduler.start();
     logger.info('🎯 Promotional notification scheduler started');
+    console.log('🎯 Promotional notification scheduler started');
+  } else {
+    console.log('⚠️  Firebase not initialized - Running in development mode');
   }
 } catch (error) {
   logger.error('Failed to initialize Firebase Admin SDK:', error);
+  console.error('❌ Failed to initialize Firebase Admin SDK:', error);
 }
 
 // Middleware
@@ -75,7 +83,8 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/promotions', require('./routes/promotions'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api', require('./routes/fcm'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/fcm', require('./routes/fcm'));
 
 // Health check
 app.get('/', (req, res) => {
@@ -106,6 +115,15 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   logger.info(`🚀 E-commerce server running on port ${PORT}`);
+  logger.info(`📱 Push notifications enabled via Firebase Cloud Messaging`);
+  logger.info(`🏪 Admin panel: http://localhost:${PORT}/admin.html`);
   logger.info(`🌐 API endpoints: http://localhost:${PORT}/api`);
   logger.info(`📊 Health check: http://localhost:${PORT}/`);
+  
+  console.log(`🚀 E-commerce server running on port ${PORT}`);
+  console.log(`📱 Push notifications enabled via Firebase Cloud Messaging`);
+  console.log(`🏪 Admin panel: http://localhost:${PORT}/admin.html`);
+  console.log(`🌐 API endpoints: http://localhost:${PORT}/api`);
+  console.log(`📊 Health check: http://localhost:${PORT}/`);
+  console.log('✅ Server startup complete!');
 });
