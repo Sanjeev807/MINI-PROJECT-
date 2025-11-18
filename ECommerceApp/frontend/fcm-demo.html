@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Push Notifications - E-Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #444;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .token-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            margin: 10px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .emoji {
+            font-size: 2em;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Firebase Cloud Messaging</h1>
+        <p class="subtitle">Real-time Push Notifications for E-Shop</p>
+
+        <div id="status" class="status info">
+            ℹ️ Checking notification support...
+        </div>
+
+        <!-- Setup Section -->
+        <div class="section">
+            <h2>🚀 Quick Setup</h2>
+            <div class="info-box">
+                <p><strong>Step 1:</strong> Click "Enable Notifications" to request permission</p>
+                <p><strong>Step 2:</strong> Login to get your JWT token</p>
+                <p><strong>Step 3:</strong> Test notifications!</p>
+            </div>
+            <button onclick="enableNotifications()">📱 Enable Notifications</button>
+            <button onclick="checkPermission()">🔍 Check Permission Status</button>
+        </div>
+
+        <!-- Token Section -->
+        <div class="section">
+            <h2>🔑 FCM Token</h2>
+            <div id="tokenDisplay" class="token-display">
+                No token yet. Please enable notifications first.
+            </div>
+            <button onclick="copyToken()">📋 Copy Token</button>
+        </div>
+
+        <!-- Test Notifications Section -->
+        <div class="section">
+            <h2>🧪 Test Notifications</h2>
+            <p>Login first, then try these test notifications:</p>
+            <div style="margin-top: 15px;">
+                <button class="btn-success" onclick="sendTestNotification()">🧪 Send Test Notification</button>
+                <button class="btn-success" onclick="testLocalNotification()">🔔 Test Local Notification</button>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section">
+            <h2>✨ Available Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="emoji">📦</div>
+                    <h3>Order Notifications</h3>
+                    <p>Placed, Shipped, Delivered, Cancelled</p>
+                </div>
+                <div class="feature-card">
+                    <div class="emoji">🎁</div>
+                    <h3>Promotional Alerts</h3>
+                    <p>Flash Sales, Deals, Offers</p>
+                </div>
+                <div class="feature-card">
+                    <div class="emoji">🔔</div>
+                    <h3>Wishlist Updates</h3>
+                    <p>Stock & Price Alerts</p>
+                </div>
+                <div class="feature-card">
+                    <div class="emoji">💝</div>
+                    <h3>Engagement</h3>
+                    <p>Welcome Back, Trending Items</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Section -->
+        <div class="section">
+            <h2>👑 Admin Controls</h2>
+            <p>For admin users only:</p>
+            <div style="margin-top: 15px;">
+                <button class="btn-secondary" onclick="sendRandomPromo()">🎲 Send Random Promo</button>
+                <button class="btn-secondary" onclick="getSchedulerStatus()">📊 Scheduler Status</button>
+            </div>
+        </div>
+
+        <!-- Information Section -->
+        <div class="section">
+            <h2>📚 Documentation</h2>
+            <div class="info-box">
+                <p>📄 <strong>Complete Guide:</strong> <code>FCM_PUSH_NOTIFICATIONS_GUIDE.md</code></p>
+                <p>📡 <strong>API Reference:</strong> <code>FCM_API_REFERENCE.md</code></p>
+                <p>🔧 <strong>Backend Service:</strong> <code>backend/services/fcmService.js</code></p>
+                <p>⚡ <strong>Scheduler:</strong> <code>backend/services/promotionalScheduler.js</code></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+            authDomain: "e-shopeasy.firebaseapp.com",
+            projectId: "e-shopeasy",
+            storageBucket: "e-shopeasy.firebasestorage.app",
+            messagingSenderId: "605116703017",
+            appId: "1:605116703017:web:1deeb57e99a67522309738",
+            measurementId: "G-JT88GF3SF1"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        let fcmToken = null;
+
+        // Make functions global
+        window.enableNotifications = async function() {
+            try {
+                updateStatus('⏳ Requesting notification permission...', 'info');
+                
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    updateStatus('✅ Permission granted! Getting FCM token...', 'success');
+                    
+                    // Note: You need to add your VAPID key here
+                    // Get it from Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
+                    const token = await getToken(messaging, {
+                        vapidKey: 'YOUR_VAPID_KEY_HERE'  // Replace with your actual VAPID key
+                    });
+                    
+                    if (token) {
+                        fcmToken = token;
+                        document.getElementById('tokenDisplay').textContent = token;
+                        updateStatus('✅ FCM Token received! Notifications are enabled.', 'success');
+                        console.log('FCM Token:', token);
+                    } else {
+                        updateStatus('⚠️ No FCM token available. Make sure you added the VAPID key.', 'error');
+                    }
+                } else {
+                    updateStatus('❌ Notification permission denied', 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        };
+
+        window.checkPermission = function() {
+            const permission = Notification.permission;
+            updateStatus(`Current permission: ${permission}`, 'info');
+        };
+
+        window.copyToken = function() {
+            if (fcmToken) {
+                navigator.clipboard.writeText(fcmToken);
+                updateStatus('✅ Token copied to clipboard!', 'success');
+            } else {
+                updateStatus('❌ No token to copy. Enable notifications first.', 'error');
+            }
+        };
+
+        window.testLocalNotification = function() {
+            if (Notification.permission === 'granted') {
+                new Notification('🧪 Test Notification', {
+                    body: 'This is a local test notification. FCM is working!',
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: 'test'
+                });
+                updateStatus('✅ Local notification sent!', 'success');
+            } else {
+                updateStatus('❌ Please enable notifications first', 'error');
+            }
+        };
+
+        window.sendTestNotification = async function() {
+            const authToken = prompt('Enter your JWT token:');
+            if (!authToken) return;
+
+            try {
+                updateStatus('⏳ Sending test notification...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/test', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    updateStatus('✅ Test notification sent successfully!', 'success');
+                } else {
+                    const error = await response.json();
+                    updateStatus('❌ Error: ' + error.message, 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+            }
+        };
+
+        window.sendRandomPromo = async function() {
+            const authToken = prompt('Enter your ADMIN JWT token:');
+            if (!authToken) return;
+
+            try {
+                updateStatus('⏳ Sending random promotional notification...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/promotional/random', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('✅ Promotional notification sent: ' + data.notification.title, 'success');
+                } else {
+                    const error = await response.json();
+                    updateStatus('❌ Error: ' + error.message, 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+            }
+        };
+
+        window.getSchedulerStatus = async function() {
+            const authToken = prompt('Enter your ADMIN JWT token:');
+            if (!authToken) return;
+
+            try {
+                updateStatus('⏳ Getting scheduler status...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/scheduler/status', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const status = `Scheduler: ${data.isRunning ? 'Running' : 'Stopped'}, Active Jobs: ${data.activeJobs}`;
+                    updateStatus('✅ ' + status, 'success');
+                    console.log('Scheduler Details:', data);
+                } else {
+                    const error = await response.json();
+                    updateStatus('❌ Error: ' + error.message, 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ Error: ' + error.message, 'error');
+            }
+        };
+
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Listen for foreground messages
+        onMessage(messaging, (payload) => {
+            console.log('📬 Foreground message received:', payload);
+            updateStatus('📬 New notification received: ' + payload.notification.title, 'success');
+            
+            // Show notification
+            if (Notification.permission === 'granted') {
+                new Notification(payload.notification.title, {
+                    body: payload.notification.body,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: 'fcm-message'
+                });
+            }
+        });
+
+        // Check initial status
+        window.addEventListener('load', () => {
+            if ('Notification' in window && 'serviceWorker' in navigator) {
+                updateStatus('✅ Browser supports notifications and service workers', 'success');
+            } else {
+                updateStatus('❌ Browser does not support notifications', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

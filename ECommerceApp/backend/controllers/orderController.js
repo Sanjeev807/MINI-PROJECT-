@@ -3,6 +3,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { sendNotificationToUser } = require('../services/notificationService');
+const fcmService = require('../services/fcmService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -71,6 +72,13 @@ exports.createOrder = async (req, res) => {
       { type: 'order_placed', orderId: order.id, amount: totalAmount },
       'order'
     );
+
+    // Send FCM push notification
+    try {
+      await fcmService.sendOrderNotification(req.user.id, 'placed', order.id);
+    } catch (fcmError) {
+      console.error('FCM notification failed:', fcmError.message);
+    }
 
     res.status(201).json({
       id: order.id,
@@ -156,6 +164,11 @@ exports.updateOrderStatus = async (req, res) => {
           body: `Great news! Your order #${order.id} has been shipped and is on its way.`,
           type: 'order_shipped'
         },
+        out_for_delivery: {
+          title: '🏃 Order Out for Delivery',
+          body: `Your order #${order.id} is out for delivery. It will arrive soon!`,
+          type: 'order_out_for_delivery'
+        },
         delivered: {
           title: '✅ Order Delivered!',
           body: `Your order #${order.id} has been delivered successfully. Thank you for shopping with E-Shop!`,
@@ -181,6 +194,13 @@ exports.updateOrderStatus = async (req, res) => {
         { type: notification.type, orderId: order.id, status },
         'order'
       );
+
+      // Send FCM push notification
+      try {
+        await fcmService.sendOrderNotification(order.userId, status, order.id);
+      } catch (fcmError) {
+        console.error('FCM notification failed:', fcmError.message);
+      }
 
       res.json(order);
     } else {
@@ -232,6 +252,13 @@ exports.cancelOrder = async (req, res) => {
       { type: 'order_cancelled', orderId: order.id },
       'order'
     );
+
+    // Send FCM push notification
+    try {
+      await fcmService.sendOrderNotification(req.user.id, 'cancelled', order.id);
+    } catch (fcmError) {
+      console.error('FCM notification failed:', fcmError.message);
+    }
 
     res.json({ message: 'Order cancelled successfully', order });
   } catch (error) {

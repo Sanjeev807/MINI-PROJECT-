@@ -36,6 +36,16 @@ exports.register = async (req, res) => {
 
     if (user) {
       logger.info(`New user registered: ${user.email}`);
+      
+      // Send FCM push notification for registration
+      if (user.fcmToken) {
+        try {
+          await fcmService.sendAccountNotification(user.id, user.name, 'register');
+        } catch (fcmError) {
+          logger.error('FCM notification failed:', fcmError);
+        }
+      }
+      
       res.status(201).json({
         _id: user.id,
         name: user.name,
@@ -83,12 +93,7 @@ exports.login = async (req, res) => {
       // Send FCM push notification
       if (user.fcmToken) {
         try {
-          await fcmService.sendNotification(
-            user.fcmToken,
-            'Login Successful',
-            `Welcome back, ${user.name}!`,
-            { type: 'login', userId: user.id.toString() }
-          );
+          await fcmService.sendAccountNotification(user.id, user.name, 'login');
         } catch (fcmError) {
           logger.error('FCM notification failed:', fcmError);
         }
@@ -163,6 +168,15 @@ exports.updateProfile = async (req, res) => {
         { type: 'account' },
         'profile_update'
       );
+
+      // Send FCM push notification
+      if (updatedUser.fcmToken) {
+        try {
+          await fcmService.sendAccountNotification(updatedUser.id, updatedUser.name, 'profile_update');
+        } catch (fcmError) {
+          logger.error('FCM notification failed:', fcmError);
+        }
+      }
 
       res.json({
         _id: updatedUser.id,

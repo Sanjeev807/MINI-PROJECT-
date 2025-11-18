@@ -44,6 +44,11 @@ try {
   if (firebaseEnabled) {
     logger.info('✅ Firebase Admin SDK initialized successfully');
     logger.info('📱 Push notifications enabled via Firebase Cloud Messaging');
+    
+    // Start promotional notification scheduler
+    const promotionalScheduler = require('./services/promotionalScheduler');
+    promotionalScheduler.start();
+    logger.info('🎯 Promotional notification scheduler started');
   }
 } catch (error) {
   logger.error('Failed to initialize Firebase Admin SDK:', error);
