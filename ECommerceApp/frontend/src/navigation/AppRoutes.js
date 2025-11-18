@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 // Screens
@@ -73,10 +73,15 @@ const UserRoute = ({ children }) => {
 
 const AppRoutes = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  
+  // Pages where header should not be shown
+  const noHeaderPages = ['/login', '/register'];
+  const showHeader = !noHeaderPages.includes(location.pathname);
 
   return (
     <>
-      <Header />
+      {showHeader && <Header />}
       <Routes>
         {/* Public Routes */}
         <Route 

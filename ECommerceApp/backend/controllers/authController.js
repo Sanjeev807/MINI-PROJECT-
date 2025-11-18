@@ -110,9 +110,27 @@ exports.login = async (req, res) => {
       if (user.fcmToken) {
         try {
           console.log(`📲 Sending FCM notifications to user: ${user.email}`);
+          
+          // Send account login notification
           await fcmService.sendAccountNotification(user.id, user.name, 'login');
-          // Also send welcome back engagement notification
+          
+          // Send personalized welcome back notification
           await fcmService.sendEngagementNotification(user.id, user.name, 'welcome_back');
+          
+          // Send system status notification
+          setTimeout(async () => {
+            try {
+              await fcmService.sendToUser(
+                user.id,
+                `🎯 Hey ${user.name}! Ready to Shop?`,
+                'Discover new arrivals, exclusive deals, and personalized recommendations just for you!',
+                { type: 'engagement', category: 'welcome_system' }
+              );
+            } catch (delayedError) {
+              console.error('Delayed notification failed:', delayedError);
+            }
+          }, 3000);
+          
           console.log(`✅ FCM notifications sent successfully`);
         } catch (fcmError) {
           logger.error('FCM notification failed:', fcmError);

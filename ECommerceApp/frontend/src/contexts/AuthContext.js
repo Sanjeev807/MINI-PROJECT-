@@ -76,21 +76,29 @@ export const AuthProvider = ({children}) => {
         setIsAuthenticated(true);
         setFcmSetup(false); // Reset FCM setup to trigger notification setup
         
-        // Show welcome back notification locally (immediate)
+        // Show immediate welcome notification
         setTimeout(() => {
           notificationEventBus.showWelcome(
             `👋 Welcome back, ${result.user.name}!`,
-            'Notifications are automatically enabled. You\'ll receive updates for orders, offers, and more!'
+            `Hi ${result.user.name}, you're successfully logged in. Enjoy your shopping experience!`
           );
-        }, 1000);
+        }, 500);
 
-        // Show additional info about backend notifications
+        // Show login confirmation notification
         setTimeout(() => {
           notificationEventBus.showAccount(
-            '🔐 Login Confirmed',
-            'Backend notifications are active. You\'ll receive FCM push alerts automatically.'
+            '🔐 Login Successful',
+            'Your account is secure. You\'ll receive notifications for orders, offers, and updates.'
           );
-        }, 4000);
+        }, 2500);
+
+        // Show system capabilities notification  
+        setTimeout(() => {
+          notificationEventBus.showEngagement(
+            '🚀 System Ready',
+            'Push notifications enabled! You\'ll get instant alerts for exclusive deals and order updates.'
+          );
+        }, 5000);
       }
       return result;
     } catch (error) {
