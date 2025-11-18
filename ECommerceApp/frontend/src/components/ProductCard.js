@@ -9,12 +9,28 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useCart();
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [imageError, setImageError] = useState(false);
   
   const isWishlisted = isInWishlist(product.id || product._id);
 
   const discountPercent = product.originalPrice 
     ? Math.round(((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100)
     : 0;
+
+  // Get product image with fallback
+  const getProductImage = () => {
+    // Try to get image from product data
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      return product.images[0];
+    }
+    
+    if (product.image) {
+      return product.image;
+    }
+    
+    // Only use placeholder if no image URL exists
+    return `https://via.placeholder.com/400x400/6366f1/white?text=${encodeURIComponent(product.name?.substring(0, 20) || 'Product')}`;
+  };
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
@@ -52,11 +68,15 @@ const ProductCard = ({ product }) => {
         onClick={() => navigate(`/product/${product.id || product._id}`)}
       >
         <Box className="product-image-container">
-          <CardMedia
-            component="img"
-            image={product.images?.[0] || product.image || 'https://via.placeholder.com/300'}
+          <img
+            src={getProductImage()}
             alt={product.name}
             className="product-image"
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `https://via.placeholder.com/400x400.png/6366f1/ffffff?text=${encodeURIComponent(product.name?.substring(0, 20) || 'Product')}`;
+            }}
           />
           
           {/* Wishlist Heart Icon */}

@@ -71,6 +71,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
@@ -141,6 +142,13 @@ const AdminDashboard = () => {
         console.error('❌ Notifications Error:', err.response?.data || err.message);
       }
 
+      try {
+        const ordersRes = await api.get('/api/admin/orders');
+        setOrders(ordersRes.data || []);
+      } catch (err) {
+        console.error('❌ Orders Error:', err.response?.data || err.message);
+      }
+
       setStats(statsData);
       setUsers(usersData.users || []);
       setProducts(productsData.products || []);
@@ -189,6 +197,27 @@ const AdminDashboard = () => {
       setSnackbar({ 
         open: true, 
         message: error.response?.data?.message || 'Failed to send notification', 
+        severity: 'error' 
+      });
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await api.put(`/api/admin/orders/${orderId}/status`, { status: newStatus });
+      setSnackbar({ 
+        open: true, 
+        message: `Order ${orderId} updated to ${newStatus}`, 
+        severity: 'success' 
+      });
+      // Refresh orders
+      const ordersRes = await api.get('/api/admin/orders');
+      setOrders(ordersRes.data || []);
+    } catch (error) {
+      console.error('❌ Error updating order status:', error);
+      setSnackbar({ 
+        open: true, 
+        message: 'Failed to update order status', 
         severity: 'error' 
       });
     }
@@ -403,6 +432,7 @@ const AdminDashboard = () => {
               scrollButtons="auto"
             >
               <Tab icon={<DashboardIcon />} label="Overview" />
+              <Tab icon={<ShoppingCart />} label="Orders" />
               <Tab icon={<People />} label="Users" />
               <Tab icon={<Inventory />} label="Products" />
               <Tab icon={<Notifications />} label="Notifications" />
@@ -503,6 +533,154 @@ const AdminDashboard = () => {
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold">
+                  🛒 All Orders ({orders.length})
+                </Typography>
+                <Button
+                  startIcon={<Refresh />}
+                  onClick={fetchDashboardData}
+                  variant="outlined"
+                >
+                  Refresh
+                </Button>
+              </Box>
+              {orders.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                  <ShoppingCart sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    No Orders Yet
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Orders placed by users will appear here
+                  </Typography>
+                </Box>
+              ) : (
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableCell><strong>Order ID</strong></TableCell>
+                        <TableCell><strong>Customer</strong></TableCell>
+                        <TableCell><strong>Products</strong></TableCell>
+                        <TableCell><strong>Total Amount</strong></TableCell>
+                        <TableCell><strong>Payment</strong></TableCell>
+                        <TableCell><strong>Status</strong></TableCell>
+                        <TableCell><strong>Date</strong></TableCell>
+                        <TableCell align="center"><strong>Action</strong></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id} hover>
+                          <TableCell>
+                            <Typography fontWeight="bold" color="primary">
+                              #{order.id}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box>
+                              <Typography variant="body2" fontWeight="bold">
+                                {order.User?.name || 'N/A'}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {order.User?.email || ''}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
+                              {order.items?.slice(0, 2).map((item, idx) => (
+                                <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  {item.image && (
+                                    <Avatar
+                                      src={item.image}
+                                      variant="rounded"
+                                      sx={{ width: 32, height: 32 }}
+                                    />
+                                  )}
+                                </Box>
+                              ))}
+                              {order.items?.length > 2 && (
+                                <Chip label={`+${order.items.length - 2}`} size="small" />
+                              )}
+                            </Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {order.items?.length} item(s)
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography fontWeight="bold">
+                              ₹{parseFloat(order.totalAmount).toLocaleString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={order.paymentMethod?.toUpperCase() || 'COD'}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <TextField
+                              select
+                              size="small"
+                              value={order.status}
+                              onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
+                              SelectProps={{
+                                native: true,
+                              }}
+                              sx={{
+                                minWidth: 120,
+                                '& .MuiOutlinedInput-root': {
+                                  backgroundColor:
+                                    order.status === 'pending' ? '#fff3cd' :
+                                    order.status === 'confirmed' ? '#cfe2ff' :
+                                    order.status === 'processing' ? '#e7f3ff' :
+                                    order.status === 'shipped' ? '#d1ecf1' :
+                                    order.status === 'delivered' ? '#d4edda' :
+                                    order.status === 'cancelled' ? '#f8d7da' : 'white',
+                                }
+                              }}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="confirmed">Confirmed</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </TextField>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {new Date(order.orderDate).toLocaleDateString()}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(order.orderDate).toLocaleTimeString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => {
+                                alert(`Order Details:\n\nOrder ID: ${order.id}\nCustomer: ${order.User?.name}\nShipping: ${JSON.stringify(order.shippingAddress, null, 2)}`);
+                              }}
+                            >
+                              View Details
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Paper>
+          )}
+
+          {tabValue === 2 && (
+            <Paper sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">
                   👥 All Users ({stats?.totalUsers || 0})
                 </Typography>
                 <TextField
@@ -555,7 +733,7 @@ const AdminDashboard = () => {
             </Paper>
           )}
 
-          {tabValue === 2 && (
+          {tabValue === 3 && (
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold">
@@ -642,7 +820,7 @@ const AdminDashboard = () => {
             </Paper>
           )}
 
-          {tabValue === 3 && (
+          {tabValue === 4 && (
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 🔔 Notification History
@@ -699,7 +877,7 @@ const AdminDashboard = () => {
             </Paper>
           )}
 
-          {tabValue === 4 && (
+          {tabValue === 5 && (
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Paper sx={{ p: 3 }}>

@@ -53,7 +53,7 @@ exports.createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
       totalAmount,
-      status: 'confirmed',
+      status: 'pending',
       paymentStatus: paymentMethod === 'cod' ? 'pending' : 'completed'
     });
 
@@ -63,12 +63,12 @@ exports.createOrder = async (req, res) => {
       { where: { userId: req.user.id } }
     );
 
-    // Send order confirmation notification
+    // Send order placed notification
     await sendNotificationToUser(
       req.user.id,
-      '✅ Order Confirmed!',
-      `Your order #${order.id} of ₹${totalAmount.toLocaleString()} has been confirmed and will be delivered soon.`,
-      { type: 'order_confirmed', orderId: order.id, amount: totalAmount },
+      '📦 Order Placed Successfully!',
+      `Your order #${order.id} of ₹${totalAmount.toLocaleString()} has been placed. Waiting for admin confirmation.`,
+      { type: 'order_placed', orderId: order.id, amount: totalAmount },
       'order'
     );
 

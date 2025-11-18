@@ -191,6 +191,102 @@ router.get('/products', async (req, res) => {
   }
 });
 
+// Get all orders (Admin)
+router.get('/orders', async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      order: [['orderDate', 'DESC']]
+    });
+
+    // Fetch user details for each order
+    const ordersWithUsers = await Promise.all(
+      orders.map(async (order) => {
+        const user = await User.findByPk(order.userId, {
+          attributes: ['id', 'name', 'email']
+        });
+        return {
+          ...order.toJSON(),
+          User: user
+        };
+      })
+    );
+
+    res.json(ordersWithUsers);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Error fetching orders', error: error.message });
+  }
+});
+
+// Update order status (Admin)
+router.put('/orders/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await Order.findByPk(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.status = status;
+    
+    if (status === 'delivered') {
+      order.deliveryDate = new Date();
+    }
+
+    await order.save();
+
+    // Send notification to user about status update
+    const statusMessages = {
+      confirmed: {
+        title: '✅ Order Confirmed',
+        body: `Your order #${order.id} has been confirmed and is being prepared.`,
+        type: 'order_confirmed'
+      },
+      processing: {
+        title: '🔄 Order Processing',
+        body: `Your order #${order.id} is being processed.`,
+        type: 'order_processing'
+      },
+      shipped: {
+        title: '📦 Order Shipped!',
+        body: `Great news! Your order #${order.id} has been shipped and is on its way.`,
+        type: 'order_shipped'
+      },
+      delivered: {
+        title: '✅ Order Delivered!',
+        body: `Your order #${order.id} has been delivered successfully. Thank you for shopping with E-Shop!`,
+        type: 'order_delivered'
+      },
+      cancelled: {
+        title: '❌ Order Cancelled',
+        body: `Your order #${order.id} has been cancelled.`,
+        type: 'order_cancelled'
+      }
+    };
+
+    const notification = statusMessages[status] || {
+      title: 'Order Status Updated',
+      body: `Order #${order.id} status: ${status}`,
+      type: 'order'
+    };
+
+    await Notification.create({
+      userId: order.userId,
+      title: notification.title,
+      body: notification.body,
+      type: 'order',
+      data: JSON.stringify({ orderId: order.id, status }),
+      sentAt: new Date()
+    });
+
+    res.json(order);
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ message: 'Error updating order status', error: error.message });
+  }
+});
+
 // Get notification statistics
 router.get('/notifications/stats', async (req, res) => {
   try {
