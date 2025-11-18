@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Comprehensive Diagnosis - E-Shop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 1.1em; }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 { color: #333; margin-bottom: 15px; font-size: 1.3em; }
+        .status {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 8px 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+        .token-box {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            margin: 10px 0;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        .result { margin: 15px 0; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .card h3 { color: #495057; margin-bottom: 15px; font-size: 1.1em; }
+        .log-area {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .step-number.completed { background: #28a745; }
+        .step-number.failed { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 FCM Comprehensive Diagnosis</h1>
+        <p class="subtitle">Complete Firebase Cloud Messaging diagnostics and testing tool</p>
+
+        <div class="section">
+            <h2>🏥 System Health Check</h2>
+            <div id="healthStatus">
+                <div class="status info">ℹ️ Starting diagnostic tests...</div>
+            </div>
+            <button onclick="runFullDiagnostics()" class="btn-success">🔍 Run Full Diagnostics</button>
+            <button onclick="clearLogs()" class="btn-secondary">🗑️ Clear Logs</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📊 Backend Status</h3>
+                <div id="backendResults"></div>
+                <button onclick="checkBackend()">🔍 Check Backend</button>
+            </div>
+
+            <div class="card">
+                <h3>🔔 Notification Permission</h3>
+                <div id="permissionResults"></div>
+                <button onclick="checkPermissions()">🔍 Check Permissions</button>
+            </div>
+
+            <div class="card">
+                <h3>🔧 Service Worker</h3>
+                <div id="swResults"></div>
+                <button onclick="checkServiceWorker()">🔍 Check Service Worker</button>
+            </div>
+
+            <div class="card">
+                <h3>🔑 FCM Token</h3>
+                <div id="tokenResults"></div>
+                <button onclick="generateToken()">🔑 Generate Token</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test Suite</h2>
+            <div class="step-indicator">
+                <div class="step-number" id="step1">1</div>
+                <span>Browser Notification Test</span>
+                <button onclick="testBrowserNotification()" style="margin-left: auto;">🔔 Test</button>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step-number" id="step2">2</div>
+                <span>User Login & Token Registration</span>
+                <button onclick="loginAndRegister()" style="margin-left: auto;">👤 Login</button>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step-number" id="step3">3</div>
+                <span>FCM Backend Test</span>
+                <button onclick="testFCMBackend()" style="margin-left: auto;" disabled id="fcmTestBtn">🚀 Test FCM</button>
+            </div>
+
+            <div class="step-indicator">
+                <div class="step-number" id="step4">4</div>
+                <span>Promotional Notification</span>
+                <button onclick="testPromotional()" style="margin-left: auto;" disabled id="promoTestBtn">📢 Test Promo</button>
+            </div>
+
+            <div class="step-indicator">
+                <div class="step-number" id="step5">5</div>
+                <span>Database Check</span>
+                <button onclick="checkDatabase()" style="margin-left: auto;" disabled id="dbCheckBtn">💾 Check DB</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎛️ Manual Controls</h2>
+            <button onclick="sendImmediatePromo()" class="btn-success" disabled id="sendPromoBtn">📢 Send Promotional Now</button>
+            <button onclick="checkUserTokens()" class="btn-secondary" disabled id="userTokensBtn">👥 Check User Tokens</button>
+            <button onclick="testMulticast()" class="btn-secondary" disabled id="multicastBtn">📡 Test Multicast</button>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Current FCM Token</h2>
+            <div id="currentToken" class="token-box">No token generated yet</div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Diagnostic Logs</h2>
+            <div id="diagnosticLogs" class="log-area">Starting diagnostics...\n</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5RY4sAvzez8XevNlhUcNiCLUcrZKxI-k",
+            authDomain: "e-shopeasy.firebaseapp.com",
+            projectId: "e-shopeasy",
+            storageBucket: "e-shopeasy.firebasestorage.app",
+            messagingSenderId: "605116703017",
+            appId: "1:605116703017:web:1deeb57e99a67522309738",
+            measurementId: "G-JT88GF3SF1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+        
+        let fcmToken = null;
+        let authToken = null;
+        let backendUrl = null;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('diagnosticLogs');
+            const typeEmoji = {
+                info: 'ℹ️',
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            logElement.innerHTML += `[${timestamp}] ${typeEmoji[type] || 'ℹ️'} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[FCM-Diagnosis] ${message}`);
+        }
+
+        function updateStepStatus(stepNum, status) {
+            const step = document.getElementById(`step${stepNum}`);
+            step.className = `step-number ${status}`;
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        window.clearLogs = function() {
+            document.getElementById('diagnosticLogs').innerHTML = 'Logs cleared...\n';
+        };
+
+        window.checkBackend = async function() {
+            log('Checking backend connectivity...');
+            const ports = [5000, 3001, 3000];
+            
+            for (const port of ports) {
+                try {
+                    const response = await fetch(`http://localhost:${port}/`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        backendUrl = `http://localhost:${port}`;
+                        showStatus('backendResults', `✅ Backend running on port ${port}`, 'success');
+                        log(`Backend found on port ${port}`, 'success');
+                        return true;
+                    }
+                } catch (error) {
+                    log(`Port ${port} - ${error.message}`);
+                }
+            }
+            
+            showStatus('backendResults', '❌ Backend not running on any port', 'error');
+            log('Backend not accessible on any common port', 'error');
+            return false;
+        };
+
+        window.checkPermissions = async function() {
+            log('Checking notification permissions...');
+            
+            if (!('Notification' in window)) {
+                showStatus('permissionResults', '❌ Browser does not support notifications', 'error');
+                log('Notification API not supported', 'error');
+                return false;
+            }
+
+            const permission = Notification.permission;
+            log(`Current permission: ${permission}`);
+
+            if (permission === 'granted') {
+                showStatus('permissionResults', '✅ Notification permission granted', 'success');
+                return true;
+            } else if (permission === 'denied') {
+                showStatus('permissionResults', '❌ Notification permission denied', 'error');
+                return false;
+            } else {
+                showStatus('permissionResults', '⚠️ Notification permission not requested', 'warning');
+                return false;
+            }
+        };
+
+        window.checkServiceWorker = async function() {
+            log('Checking service worker...');
+
+            if (!('serviceWorker' in navigator)) {
+                showStatus('swResults', '❌ Service Worker not supported', 'error');
+                log('Service Worker not supported', 'error');
+                return false;
+            }
+
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                log(`Found ${registrations.length} service worker registrations`);
+
+                let fcmSWFound = false;
+                for (const registration of registrations) {
+                    log(`SW Scope: ${registration.scope}`);
+                    if (registration.active && registration.active.scriptURL.includes('firebase-messaging-sw.js')) {
+                        fcmSWFound = true;
+                        break;
+                    }
+                }
+
+                if (fcmSWFound) {
+                    showStatus('swResults', '✅ Firebase messaging service worker active', 'success');
+                    log('Firebase messaging service worker found and active', 'success');
+                    return true;
+                } else {
+                    try {
+                        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                        showStatus('swResults', '✅ Service worker registered successfully', 'success');
+                        log('Firebase messaging service worker registered', 'success');
+                        return true;
+                    } catch (error) {
+                        showStatus('swResults', '⚠️ Service worker registration failed', 'warning');
+                        log(`Service worker registration failed: ${error.message}`, 'warning');
+                        return false;
+                    }
+                }
+            } catch (error) {
+                showStatus('swResults', '❌ Service worker check failed', 'error');
+                log(`Service worker check failed: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.generateToken = async function() {
+            log('Generating FCM token...');
+
+            try {
+                if (Notification.permission !== 'granted') {
+                    log('Requesting notification permission...');
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        showStatus('tokenResults', '❌ Permission required for FCM token', 'error');
+                        log('Notification permission denied', 'error');
+                        return false;
+                    }
+                }
+
+                const token = await getToken(messaging, {
+                    vapidKey: 'BB1oO5HVWQLQVC3qTw0yPC1g--xeXDinC4dYIiXA1etyCClxSFxVjquTedmV3X4oxAKAHKJB7Xo2wPJob0bZRW8'
+                });
+
+                if (token) {
+                    fcmToken = token;
+                    document.getElementById('currentToken').textContent = token;
+                    showStatus('tokenResults', '✅ FCM token generated successfully', 'success');
+                    log('FCM token generated successfully', 'success');
+                    log(`Token: ${token.substring(0, 50)}...`);
+                    return true;
+                } else {
+                    showStatus('tokenResults', '❌ Failed to generate FCM token', 'error');
+                    log('No FCM token received', 'error');
+                    return false;
+                }
+            } catch (error) {
+                showStatus('tokenResults', `❌ Token generation failed: ${error.message}`, 'error');
+                log(`Token generation failed: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.testBrowserNotification = async function() {
+            log('Testing browser notification...');
+
+            if (Notification.permission !== 'granted') {
+                log('Requesting notification permission...');
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    updateStepStatus(1, 'failed');
+                    log('Browser notification test failed - permission denied', 'error');
+                    return false;
+                }
+            }
+
+            try {
+                new Notification('🧪 Browser Test', {
+                    body: 'If you see this, browser notifications work!',
+                    icon: '/favicon.ico',
+                    tag: 'test-notification'
+                });
+                
+                updateStepStatus(1, 'completed');
+                log('Browser notification test passed', 'success');
+                return true;
+            } catch (error) {
+                updateStepStatus(1, 'failed');
+                log(`Browser notification test failed: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.loginAndRegister = async function() {
+            log('Starting user login and token registration...');
+
+            if (!backendUrl) {
+                const backendOk = await checkBackend();
+                if (!backendOk) {
+                    updateStepStatus(2, 'failed');
+                    log('Login failed - backend not available', 'error');
+                    return false;
+                }
+            }
+
+            if (!fcmToken) {
+                const tokenOk = await generateToken();
+                if (!tokenOk) {
+                    updateStepStatus(2, 'failed');
+                    log('Login failed - no FCM token', 'error');
+                    return false;
+                }
+            }
+
+            const email = prompt('Enter your email:');
+            const password = prompt('Enter your password:');
+
+            if (!email || !password) {
+                updateStepStatus(2, 'failed');
+                log('Login cancelled by user', 'warning');
+                return false;
+            }
+
+            try {
+                log(`Attempting login for ${email}...`);
+                const response = await fetch(`${backendUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    updateStepStatus(2, 'failed');
+                    log(`Login failed: ${error.message}`, 'error');
+                    return false;
+                }
+
+                const data = await response.json();
+                authToken = data.token;
+                log('Login successful', 'success');
+
+                // Save FCM token
+                log('Saving FCM token to backend...');
+                const tokenResponse = await fetch(`${backendUrl}/api/fcm/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ fcmToken })
+                });
+
+                if (tokenResponse.ok) {
+                    updateStepStatus(2, 'completed');
+                    log('FCM token saved to backend successfully', 'success');
+                    
+                    // Enable test buttons
+                    document.getElementById('fcmTestBtn').disabled = false;
+                    document.getElementById('promoTestBtn').disabled = false;
+                    document.getElementById('dbCheckBtn').disabled = false;
+                    document.getElementById('sendPromoBtn').disabled = false;
+                    document.getElementById('userTokensBtn').disabled = false;
+                    document.getElementById('multicastBtn').disabled = false;
+                    
+                    return true;
+                } else {
+                    const tokenError = await tokenResponse.json();
+                    updateStepStatus(2, 'failed');
+                    log(`Failed to save FCM token: ${tokenError.message}`, 'error');
+                    return false;
+                }
+
+            } catch (error) {
+                updateStepStatus(2, 'failed');
+                log(`Login error: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.testFCMBackend = async function() {
+            log('Testing FCM backend notification...');
+
+            if (!authToken) {
+                updateStepStatus(3, 'failed');
+                log('FCM test failed - not logged in', 'error');
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/api/fcm/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    updateStepStatus(3, 'completed');
+                    log('FCM backend test passed - notification sent!', 'success');
+                    log(`Result: ${JSON.stringify(result, null, 2)}`);
+                    return true;
+                } else {
+                    const error = await response.json();
+                    updateStepStatus(3, 'failed');
+                    log(`FCM backend test failed: ${error.message}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                updateStepStatus(3, 'failed');
+                log(`FCM backend test error: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.testPromotional = async function() {
+            log('Testing promotional notification...');
+
+            if (!authToken) {
+                updateStepStatus(4, 'failed');
+                log('Promotional test failed - not logged in', 'error');
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/api/fcm/promotional/random`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    updateStepStatus(4, 'completed');
+                    log('Promotional notification test passed!', 'success');
+                    log(`Sent: ${result.notification.title}`);
+                    return true;
+                } else {
+                    const error = await response.json();
+                    updateStepStatus(4, 'failed');
+                    log(`Promotional test failed: ${error.message}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                updateStepStatus(4, 'failed');
+                log(`Promotional test error: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.checkDatabase = async function() {
+            log('Checking database and user tokens...');
+
+            if (!authToken) {
+                updateStepStatus(5, 'failed');
+                log('Database check failed - not logged in', 'error');
+                return false;
+            }
+
+            try {
+                // Check scheduler status
+                const schedulerResponse = await fetch(`${backendUrl}/api/fcm/scheduler/status`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (schedulerResponse.ok) {
+                    const schedulerStatus = await schedulerResponse.json();
+                    updateStepStatus(5, 'completed');
+                    log('Database check passed', 'success');
+                    log(`Scheduler running: ${schedulerStatus.isRunning}`);
+                    log(`Active jobs: ${schedulerStatus.activeJobs}`);
+                    return true;
+                } else {
+                    updateStepStatus(5, 'failed');
+                    log('Database check failed - scheduler status unavailable', 'error');
+                    return false;
+                }
+            } catch (error) {
+                updateStepStatus(5, 'failed');
+                log(`Database check error: ${error.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.runFullDiagnostics = async function() {
+            log('=== STARTING FULL DIAGNOSTIC SUITE ===', 'info');
+            
+            let passed = 0;
+            let total = 8;
+
+            // Test 1: Backend
+            if (await checkBackend()) passed++;
+            
+            // Test 2: Permissions
+            if (await checkPermissions()) passed++;
+            
+            // Test 3: Service Worker
+            if (await checkServiceWorker()) passed++;
+            
+            // Test 4: Token Generation
+            if (await generateToken()) passed++;
+            
+            // Test 5: Browser Notification
+            if (await testBrowserNotification()) passed++;
+            
+            log('=== DIAGNOSTIC RESULTS ===');
+            log(`Passed: ${passed}/${total} tests`);
+            
+            if (passed === total) {
+                showStatus('healthStatus', '✅ All systems operational! FCM should be working.', 'success');
+                log('All diagnostic tests passed!', 'success');
+            } else if (passed >= total * 0.7) {
+                showStatus('healthStatus', '⚠️ Most systems working. Some issues detected.', 'warning');
+                log('Most tests passed, minor issues detected', 'warning');
+            } else {
+                showStatus('healthStatus', '❌ Major issues detected. FCM may not work properly.', 'error');
+                log('Multiple diagnostic failures detected', 'error');
+            }
+        };
+
+        // Additional manual control functions
+        window.sendImmediatePromo = async function() {
+            if (!authToken) return;
+            
+            try {
+                const response = await fetch(`${backendUrl}/api/fcm/promotional/random`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    log('Immediate promotional notification sent!', 'success');
+                } else {
+                    log('Failed to send promotional notification', 'error');
+                }
+            } catch (error) {
+                log(`Error sending promotional: ${error.message}`, 'error');
+            }
+        };
+
+        window.checkUserTokens = async function() {
+            log('Checking user FCM tokens in database...');
+            // This would need a backend endpoint to list users with tokens
+            log('User token check feature would require additional backend endpoint');
+        };
+
+        window.testMulticast = async function() {
+            if (!authToken || !fcmToken) return;
+            
+            try {
+                const response = await fetch(`${backendUrl}/api/fcm/broadcast`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: '📡 Multicast Test',
+                        body: 'This is a broadcast test notification to all users!',
+                        data: { type: 'multicast_test' }
+                    })
+                });
+                
+                if (response.ok) {
+                    log('Multicast notification sent to all users!', 'success');
+                } else {
+                    log('Failed to send multicast notification', 'error');
+                }
+            } catch (error) {
+                log(`Multicast error: ${error.message}`, 'error');
+            }
+        };
+
+        // Set up foreground message listener
+        onMessage(messaging, (payload) => {
+            log('📬 Foreground FCM message received!', 'success');
+            log(`Title: ${payload.notification?.title}`);
+            log(`Body: ${payload.notification?.body}`);
+            
+            if (Notification.permission === 'granted') {
+                new Notification(payload.notification?.title || 'FCM Notification', {
+                    body: payload.notification?.body || 'You received a notification',
+                    icon: '/favicon.ico',
+                    tag: 'fcm-foreground'
+                });
+            }
+        });
+
+        // Auto-run basic diagnostics on load
+        window.addEventListener('load', () => {
+            log('FCM Diagnosis Tool loaded', 'info');
+            log('Run full diagnostics to check all systems', 'info');
+        });
+    </script>
+</body>
+</html>

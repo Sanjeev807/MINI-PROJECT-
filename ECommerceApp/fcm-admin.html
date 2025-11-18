@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Admin Control Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+        .card h3 { color: #333; margin-bottom: 15px; }
+        button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎛️ FCM Admin Control Panel</h1>
+        <p class="subtitle">Manage and test push notifications</p>
+
+        <div id="authStatus" class="status info">
+            ℹ️ Please login as admin first
+        </div>
+
+        <div class="card">
+            <h3>👨‍💼 Admin Login</h3>
+            <input type="email" id="email" placeholder="Admin Email" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <input type="password" id="password" placeholder="Admin Password" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <button onclick="adminLogin()">🔐 Login as Admin</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📊 System Status</h3>
+                <button onclick="checkStatus()">📈 Check System Status</button>
+                <button onclick="checkUserTokens()">👥 Check User Tokens</button>
+                <div id="systemStatus"></div>
+            </div>
+
+            <div class="card">
+                <h3>📢 Send Notifications</h3>
+                <button onclick="sendRandomPromo()" disabled id="promoBtn">🎯 Send Random Promo</button>
+                <button onclick="sendTestToAll()" disabled id="testAllBtn">📡 Test All Users</button>
+                <button onclick="sendCustomNotification()" disabled id="customBtn">✏️ Custom Notification</button>
+            </div>
+
+            <div class="card">
+                <h3>⏰ Scheduler Control</h3>
+                <button onclick="getSchedulerStatus()" disabled id="schedStatusBtn">📊 Scheduler Status</button>
+                <button onclick="startScheduler()" disabled id="startBtn">▶️ Start Scheduler</button>
+                <button onclick="stopScheduler()" disabled id="stopBtn">⏸️ Stop Scheduler</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Testing Tools</h3>
+                <button onclick="triggerImmediate()" disabled id="immediateBtn">⚡ Trigger Now</button>
+                <button onclick="clearAllTokens()" disabled id="clearBtn" style="background: #dc3545;">🗑️ Clear All Tokens</button>
+            </div>
+        </div>
+
+        <div id="results" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        let authToken = null;
+
+        function updateAuthStatus(message, type) {
+            const status = document.getElementById('authStatus');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function showResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            results.innerHTML = `<div class="status ${type}">${message}</div>` + results.innerHTML;
+        }
+
+        window.adminLogin = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                updateAuthStatus('❌ Please enter email and password', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    updateAuthStatus(`❌ Login failed: ${error.message}`, 'error');
+                    return;
+                }
+
+                const data = await response.json();
+                
+                // Check if user is admin
+                if (data.user.role !== 'admin') {
+                    updateAuthStatus('❌ Admin access required', 'error');
+                    return;
+                }
+
+                authToken = data.token;
+                updateAuthStatus(`✅ Logged in as admin: ${data.user.email}`, 'success');
+
+                // Enable buttons
+                document.getElementById('promoBtn').disabled = false;
+                document.getElementById('testAllBtn').disabled = false;
+                document.getElementById('customBtn').disabled = false;
+                document.getElementById('schedStatusBtn').disabled = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('immediateBtn').disabled = false;
+                document.getElementById('clearBtn').disabled = false;
+
+            } catch (error) {
+                updateAuthStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.checkStatus = async function() {
+            try {
+                const response = await fetch('http://localhost:5000/');
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('✅ Backend is running and healthy', 'success');
+                } else {
+                    showResult('❌ Backend responded with error', 'error');
+                }
+            } catch (error) {
+                showResult('❌ Backend not accessible', 'error');
+            }
+        };
+
+        window.checkUserTokens = async function() {
+            showResult('ℹ️ Checking user tokens...', 'info');
+            // This would need a custom backend endpoint to get user token stats
+            showResult('🔍 User token check would require additional backend endpoint', 'warning');
+        };
+
+        window.sendRandomPromo = async function() {
+            if (!authToken) return;
+
+            try {
+                showResult('⏳ Sending random promotional notification...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/promotional/random', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showResult(`✅ Random promo sent: "${result.notification.title}"`, 'success');
+                } else {
+                    const error = await response.json();
+                    showResult(`❌ Failed to send promo: ${error.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.sendTestToAll = async function() {
+            if (!authToken) return;
+
+            try {
+                showResult('⏳ Sending test notification to all users...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/broadcast', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: '🧪 Admin Test Broadcast',
+                        body: 'This is a test broadcast notification sent from the admin panel.',
+                        data: { type: 'admin_test' }
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showResult(`✅ Broadcast sent successfully`, 'success');
+                } else {
+                    const error = await response.json();
+                    showResult(`❌ Broadcast failed: ${error.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.sendCustomNotification = async function() {
+            if (!authToken) return;
+
+            const title = prompt('Enter notification title:');
+            const body = prompt('Enter notification body:');
+
+            if (!title || !body) return;
+
+            try {
+                showResult('⏳ Sending custom notification...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/broadcast', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title, body,
+                        data: { type: 'custom_admin' }
+                    })
+                });
+
+                if (response.ok) {
+                    showResult(`✅ Custom notification sent: "${title}"`, 'success');
+                } else {
+                    const error = await response.json();
+                    showResult(`❌ Failed to send: ${error.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.getSchedulerStatus = async function() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/fcm/scheduler/status', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const status = await response.json();
+                    showResult(`📊 Scheduler: ${status.isRunning ? 'RUNNING' : 'STOPPED'} | Active Jobs: ${status.activeJobs}`, 'info');
+                    document.getElementById('systemStatus').innerHTML = `
+                        <div class="status ${status.isRunning ? 'success' : 'warning'}">
+                            Scheduler: ${status.isRunning ? '🟢 Running' : '🟡 Stopped'}<br>
+                            Jobs: ${status.activeJobs}/6
+                        </div>
+                    `;
+                } else {
+                    showResult('❌ Failed to get scheduler status', 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.startScheduler = async function() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/fcm/scheduler/start', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showResult('✅ Promotional scheduler started', 'success');
+                } else {
+                    const error = await response.json();
+                    showResult(`❌ Failed to start scheduler: ${error.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.stopScheduler = async function() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/fcm/scheduler/stop', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showResult('⏸️ Promotional scheduler stopped', 'warning');
+                } else {
+                    const error = await response.json();
+                    showResult(`❌ Failed to stop scheduler: ${error.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.triggerImmediate = async function() {
+            if (!authToken) return;
+
+            try {
+                showResult('⚡ Triggering immediate promotional notification...', 'info');
+                const response = await fetch('http://localhost:5000/api/fcm/promotional', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: '⚡ Immediate Test Notification',
+                        body: 'This is an immediate test notification triggered from admin panel!',
+                        promoType: 'admin_immediate'
+                    })
+                });
+
+                if (response.ok) {
+                    showResult('⚡ Immediate notification triggered!', 'success');
+                } else {
+                    const error = await response.json();
+                    showResult(`❌ Failed to trigger: ${error.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.clearAllTokens = async function() {
+            if (!confirm('⚠️ This will clear all FCM tokens from the database. Continue?')) return;
+            
+            showResult('🗑️ Clear tokens feature would require additional backend endpoint', 'warning');
+        };
+
+        // Auto-check status on load
+        window.addEventListener('load', () => {
+            checkStatus();
+        });
+    </script>
+</body>
+</html>
