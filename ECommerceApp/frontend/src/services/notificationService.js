@@ -68,8 +68,32 @@ export const requestNotificationPermission = async () => {
 
     // Register service worker
     try {
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      // Force refresh service worker registration
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          if (registration.scope.includes('firebase-messaging-sw')) {
+            console.log('🔄 Unregistering old service worker...');
+            await registration.unregister();
+          }
+        }
+      }
+      
+      // Register fresh service worker
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/',
+        updateViaCache: 'none' // Force fresh registration
+      });
       console.log('✅ Service worker registered:', registration);
+      
+      // Clear any existing notifications
+      if (registration && registration.getNotifications) {
+        const notifications = await registration.getNotifications();
+        notifications.forEach(notification => {
+          console.log('🗑️ Clearing existing notification:', notification.title);
+          notification.close();
+        });
+      }
     } catch (swError) {
       console.warn('Service worker registration failed:', swError);
       // Continue without service worker for foreground notifications
@@ -185,11 +209,34 @@ export const subscribeToNotifications = async (authToken) => {
 // Setup foreground message listener
 export const setupForegroundListener = (callback) => {
   if (!messaging) {
-    console.warn('Messaging not initialized');
+    console.error('❌ Messaging not initialized! Attempting to initialize...');
+    
+    // Try to initialize messaging
+    initializeMessaging().then((success) => {
+      if (success) {
+        console.log('✅ Messaging initialized successfully, setting up listener...');
+        setupForegroundListener(callback);
+      } else {
+        console.error('❌ Failed to initialize messaging for foreground listener');
+      }
+    });
     return;
   }
 
   console.log('🎯 Setting up FCM foreground listener...');
+  console.log('🧹 Clearing any existing notifications...');
+  
+  // Clear any existing cached notifications
+  if ('serviceWorker' in navigator && 'getNotifications' in ServiceWorkerRegistration.prototype) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.getNotifications().then(notifications => {
+        notifications.forEach(notification => {
+          console.log('🗑️ Clearing old notification:', notification.title);
+          notification.close();
+        });
+      });
+    });
+  }
 
   onMessage(messaging, (payload) => {
     console.log('📬 FCM Foreground message received:', payload);
@@ -205,29 +252,52 @@ export const setupForegroundListener = (callback) => {
     
     // Show browser notification with EXACT backend message
     if (Notification.permission === 'granted') {
+      console.log('🔔 Notification permission granted, creating notification...');
+      
       const notificationOptions = {
         body: notificationBody,
         icon: '/favicon.ico',
         badge: '/favicon.ico',
-        tag: payload.data?.type || 'notification',
+        tag: `notification-${Date.now()}`, // Unique tag to prevent caching
         data: payload.data,
         requireInteraction: false,
-        silent: false
+        silent: false,
+        timestamp: Date.now()
       };
 
+      console.log('🎯 Notification options:', notificationOptions);
       console.log('✅ Showing browser notification...');
-      const notification = new Notification(notificationTitle, notificationOptions);
       
-      notification.onclick = () => {
-        console.log('🖱️ Notification clicked');
-        window.focus();
-        notification.close();
+      try {
+        const notification = new Notification(notificationTitle, notificationOptions);
         
-        // Navigate to link if provided
-        if (payload.data?.link) {
-          window.location.href = payload.data.link;
-        }
-      };
+        notification.onclick = () => {
+          console.log('🖱️ Notification clicked');
+          window.focus();
+          notification.close();
+          
+          // Navigate to link if provided
+          if (payload.data?.link) {
+            window.location.href = payload.data.link;
+          }
+        };
+        
+        notification.onerror = (error) => {
+          console.error('❌ Notification error:', error);
+        };
+        
+        notification.onshow = () => {
+          console.log('✅ Notification displayed successfully');
+        };
+        
+        notification.onclose = () => {
+          console.log('📥 Notification closed');
+        };
+        
+        console.log('📱 Notification created:', notification);
+      } catch (notifError) {
+        console.error('❌ Failed to create notification:', notifError);
+      }
     } else {
       console.warn('⚠️ Notification permission not granted, permission:', Notification.permission);
     }
@@ -240,6 +310,65 @@ export const setupForegroundListener = (callback) => {
   });
   
   console.log('✅ FCM foreground listener setup complete');
+  
+  // Test browser notification capability
+  setTimeout(() => {
+    console.log('🧪 Testing browser notification capability...');
+    testBrowserNotification();
+  }, 2000);
+};
+
+// Clear all existing notifications
+export const clearAllNotifications = async () => {
+  console.log('🧹 Clearing all existing notifications...');
+  
+  // Clear browser notifications
+  if ('serviceWorker' in navigator) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        if (registration.getNotifications) {
+          const notifications = await registration.getNotifications();
+          notifications.forEach(notification => {
+            console.log('🗑️ Clearing notification:', notification.title);
+            notification.close();
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to clear notifications:', error);
+    }
+  }
+};
+
+// Test browser notification capability
+export const testBrowserNotification = () => {
+  console.log('🧪 Testing browser notification capability...');
+  console.log('   Permission:', Notification.permission);
+  
+  if (Notification.permission === 'granted') {
+    try {
+      const testNotification = new Notification('🧪 Test Notification', {
+        body: 'If you see this, browser notifications are working!',
+        icon: '/favicon.ico',
+        tag: 'test-notification'
+      });
+      
+      testNotification.onclick = () => {
+        console.log('✅ Test notification clicked');
+        testNotification.close();
+      };
+      
+      console.log('✅ Test notification created successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to create test notification:', error);
+      return false;
+    }
+  } else {
+    console.warn('⚠️ Notification permission not granted');
+    return false;
+  }
 };
 
 // Send test notification

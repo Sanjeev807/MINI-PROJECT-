@@ -1,6 +1,6 @@
 import React, {createContext, useState, useContext, useEffect} from 'react';
 import {authService} from '../services/authService';
-import {setupFCMForUser, setupForegroundListener} from '../services/notificationService';
+import {setupFCMForUser, setupForegroundListener, clearAllNotifications} from '../services/notificationService';
 import {notificationEventBus} from '../services/notificationEventBus';
 
 const AuthContext = createContext();
@@ -26,15 +26,28 @@ export const AuthProvider = ({children}) => {
   const setupNotifications = async () => {
     try {
       console.log('🔔 Setting up notifications for authenticated user...');
+      console.log('   Token available:', !!token);
+      console.log('   User:', user?.name || 'Unknown');
+      
+      // Clear any existing cached notifications first
+      await clearAllNotifications();
       
       const fcmResult = await setupFCMForUser(token);
+      console.log('📊 FCM setup result:', fcmResult);
       
       if (fcmResult.success) {
         console.log('✅ FCM setup completed for user');
         setFcmSetup(true);
         
         // Setup foreground message listener WITHOUT event bus (browser notifications only)
+        console.log('🎧 Setting up foreground listener...');
         setupForegroundListener();
+        console.log('✅ Foreground listener setup complete');
+        
+        // Clear any residual notifications after setup
+        setTimeout(() => {
+          clearAllNotifications();
+        }, 1000);
         
       } else if (fcmResult.isNetworkError) {
         console.warn('⚠️ FCM setup postponed: Backend not available, will retry when connected');

@@ -30,7 +30,11 @@ class FCMService {
       // Convert all data values to strings (FCM requirement)
       const stringData = {};
       Object.keys(data).forEach(key => {
-        stringData[key] = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+        const value = data[key];
+        // Skip undefined, null, or empty values
+        if (value !== undefined && value !== null && value !== '') {
+          stringData[key] = typeof value === 'string' ? value : JSON.stringify(value);
+        }
       });
       stringData.timestamp = new Date().toISOString();
 
@@ -447,14 +451,19 @@ class FCMService {
 
     const notification = notifications[type] || notifications.discount_offer;
 
-    return await this.sendToUser(userId, notification.title, notification.body, {
+    // Ensure all data values are strings or remove undefined/null values
+    const notificationData = {
       type: 'promotional',
       action: type,
-      link: details.link || '/offers',
-      discount: details.discount,
-      category: details.category,
-      validUntil: details.validUntil
-    });
+      link: details.link || '/offers'
+    };
+    
+    // Only add non-null/undefined values as strings
+    if (details.discount) notificationData.discount = String(details.discount);
+    if (details.category) notificationData.category = String(details.category);
+    if (details.validUntil) notificationData.validUntil = String(details.validUntil);
+
+    return await this.sendToUser(userId, notification.title, notification.body, notificationData);
   }
 
   // ========== ACCOUNT NOTIFICATIONS ==========

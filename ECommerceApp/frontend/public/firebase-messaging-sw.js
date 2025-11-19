@@ -28,14 +28,23 @@ messaging.onBackgroundMessage((payload) => {
   
   console.log('[SW] Showing notification:', notificationTitle, '-', notificationBody);
   
+  // Clear any existing notifications first
+  self.registration.getNotifications().then(notifications => {
+    notifications.forEach(notification => {
+      console.log('[SW] Clearing old notification:', notification.title);
+      notification.close();
+    });
+  });
+  
   const notificationOptions = {
     body: notificationBody,
     icon: '/favicon.ico',
     badge: '/favicon.ico',
-    tag: payload.data?.type || 'ecommerce-notification',
+    tag: `sw-notification-${Date.now()}`, // Unique tag to prevent caching
     data: payload.data || {},
     requireInteraction: false,
     vibrate: [200, 100, 200],
+    timestamp: Date.now(),
     actions: [
       {
         action: 'open',
@@ -49,6 +58,7 @@ messaging.onBackgroundMessage((payload) => {
     ]
   };
 
+  console.log('[SW] Notification options:', notificationOptions);
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
